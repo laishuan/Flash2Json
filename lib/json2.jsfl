@@ -366,9 +366,14 @@ if (typeof JSON !== "object") {
 // Otherwise, iterate through all of the keys in the object.
                 debug(String(value));
                 debug(is(value));
+                var ignoreKey = CONFIG.ignoreKey;
                 for (k in value) {
                     // if (Object.prototype.hasOwnProperty.call(value, k)) {
-                    if (k !== "brightness" && k !== "tintColor" && k !== "tintPercent" && is(value[k]) !== "null") {
+                    if (k !== "brightness" 
+                        && k !== "tintColor" 
+                        && k !== "tintPercent" 
+                        && k !== "actionScript"
+                        && is(value[k]) !== "null") {
                         debug(String(k) + ":" + is(value[k]));
                         debug("1");
                         v = str(k, value, maxlevel - 1);
