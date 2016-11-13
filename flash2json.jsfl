@@ -1,3 +1,5 @@
+// flash2json.jsfl
+
 fl.outputPanel.clear();
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
 

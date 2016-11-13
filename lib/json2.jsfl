@@ -157,6 +157,11 @@ if (typeof JSON !== "object") {
     JSON = {};
 }
 
+JsonDealTypes = {
+    "Skip": 1,
+    "Deal": 2
+};
+
 (function () {
     "use strict";
 
@@ -271,7 +276,11 @@ if (typeof JSON !== "object") {
 // obtain a replacement value.
 
         if (is(rep) === "function") {
-            value = rep.call(holder, key, value);
+            var ret = rep.call(holder, key, value);
+            if (ret.t === JsonDealTypes.Skip)
+                return false;
+            else
+                value = ret.v;
         }
         debug("7");
 // What happens next depends on the value's type.
@@ -366,14 +375,15 @@ if (typeof JSON !== "object") {
 // Otherwise, iterate through all of the keys in the object.
                 debug(String(value));
                 debug(is(value));
-                var ignoreKey = CONFIG.ignoreKey;
                 for (k in value) {
+                    var isNotKSkip = true;
+                    if (is(rep) === "function") {
+                        var ret = rep.call(holder, k, value);
+                        if (ret.t === JsonDealTypes.Skip)
+                            isNotKSkip = false;
+                    }
                     // if (Object.prototype.hasOwnProperty.call(value, k)) {
-                    if (k !== "brightness" 
-                        && k !== "tintColor" 
-                        && k !== "tintPercent" 
-                        && k !== "actionScript"
-                        && is(value[k]) !== "null") {
+                    if (isNotKSkip && is(value[k]) !== "null") {
                         debug(String(k) + ":" + is(value[k]));
                         debug("1");
                         v = str(k, value, maxlevel - 1);
