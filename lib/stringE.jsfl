@@ -7,12 +7,36 @@
 		return (index != -1 ? this.slice(0, index+1) : -1);
 	}
 
-	String.prototype.name = function () {
+	String.prototype.firstName = function () {
+		var indexS = this.lastIndexOf('\\');
+		indexS = (indexS == -1 ? this.lastIndexOf('/') : indexS);
+		if (indexS !== -1) {
+			return this.slice(0, indexS);
+		}
+		return this.valueOf();
+	}
+
+	String.prototype.lastName = function () {
+		var indexS = this.lastIndexOf('\\');
+		indexS = (indexS == -1 ? this.lastIndexOf('/') : indexS);
+		if (indexS !== -1) {
+			return this.slice(indexS+1);
+		}
+		return this.valueOf();
+	}
+
+	String.prototype.fileName = function () {
 		var indexS = this.lastIndexOf('\\');
 		indexS = (indexS == -1 ? this.lastIndexOf('/') : indexS);
 		var indexE = this.lastIndexOf('.');
-		if (indexS != -1 && indexE != -1)
-			return this.slice(indexS+1, indexE);
+		if (indexE != -1) {
+			var ret = this.slice(indexS+1, indexE);
+			var index = ret.indexOf(".");
+			if (index === -1) 
+				return ret;
+			else
+				return ret.slice(index + 1);
+		}
 		else
 			return -1;
 	}
