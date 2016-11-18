@@ -24,7 +24,9 @@ else {
 				|| key === "tintColor" 
 				|| key === "tintPercent"
 				|| key === "tintPercent"
-				|| key === "actionScript") {	
+				|| key === "actionScript"
+				|| key === "packagePaths"
+				|| value.elementType == "shape") {	
 			ret.t = JsonDealTypes.Skip;
 			return ret;
 		}

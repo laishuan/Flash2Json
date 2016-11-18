@@ -94,29 +94,7 @@ var getItemNewData = function (item, itemType, nameHash) {
 		ret.path = FlashName + "image/";
 	}
 	else if (itemType === UITypes.Anm) {
-		ret.timeline = JSON.stringify(item.timeline, ["layers", 
-														"frameCount",
-														"layerCount",
-														"libraryItem",
-														"layerType",
-														"frameCount",
-														"visible",
-														"frames",
-														"elements",
-														"hPixels",
-														"vPixels",
-														"x",
-														"y",
-														"scaleX",
-														"scaleY",
-														"skewX",
-														"skewY",
-														"transformationPoint",
-														"startFrame",
-														"duration",
-														"tweenType",
-														"depth"
-														]);
+		ret.timeline = item.timeline;
 		ret.frameCount = item.frameCount;
 		ret.layerCount = item.layerCount;
 	}
@@ -136,6 +114,10 @@ var OriginNameHash = function  () {
 	for (var key in UITypes) {
 		this.curIndexs[UITypes[key]] = 0;
 	}
+}
+
+OriginNameHash.prototype.getNewNameByOrigin = function (originName) {
+	return this.origin2New[originName];
 }
 
 OriginNameHash.prototype.getNewNameByType = function (itemType) {
@@ -179,18 +161,55 @@ for (var i = 0; i < length; i++) {
 		exportLibs[exportLibs.length] = getItemNewData(item, itemType, originNameHash);
 	}
 };
-var ref = function  (key, value) {
+var keyArr = [
+			"",
+			"library",
+			"name",
+			"tp",
+			"path",
+			"timeline",
+			"layers", 
+			"frameCount",
+			"layerCount",
+			"libraryItem",
+			"layerType",
+			"frameCount",
+			"visible",
+			"frames",
+			"elements",
+			"isEmpty",
+			"hPixels",
+			"vPixels",
+			"x",
+			"y",
+			"scaleX",
+			"scaleY",
+			"skewX",
+			"skewY",
+			"transformationPoint",
+			"startFrame",
+			"duration",
+			"tweenType",
+			"depth"
+			];
+
+var keyInArr = function  (key, arr) {
+	for (var i = 0; i < keyArr.length; i++) {
+		if (key === arr[i])
+			return true;
+	};
+	return false;
+}
+var ref = function (key, value) {
 	var ret = {};
 
 	if (key === "libraryItem") {
-		ret.v = value.name;
+		ret.v = originNameHash.getNewNameByOrigin(value.name);
 		ret.t = JsonDealTypes.Deal;
-		return ret;
 	}
 	else if (key === "layer") {
 		ret.v = value.name;
 		ret.t = JsonDealTypes.Deal;
-		return ret;
 	}
 	else if (key === "brightness" 
 			|| key === "tintColor" 
@@ -200,15 +219,33 @@ var ref = function  (key, value) {
 			|| key === "packagePaths"
 			|| value.elementType == "shape") {	
 		ret.t = JsonDealTypes.Skip;
-		return ret;
 	}
-	else {
+	else if (is(key) === "number") {
+		if (value.elements !== undefined) {
+			if (value.startFrame === key) {
+				ret.t = JsonDealTypes.Deal;
+				ret.v = value;
+			}
+			else
+				ret.t = JsonDealTypes.Skip;
+		}
+		else
+		{
+				ret.t = JsonDealTypes.Deal;
+				ret.v = value;
+		}
+	}
+	else if (keyInArr(key, keyArr)) {
 		ret.v = value;
 		ret.t = JsonDealTypes.Deal;
-		return ret;
 	}
+	else {
+		ret.t = JsonDealTypes.Skip;
+	}
+	return ret;
 }
 var jsonStr = JSON.stringify(exportData, ref, 4);
 if (!FLfile.exists(CONFIG.globalFlaFolder))
 	FLfile.createFolder(CONFIG.globalFlaFolder);
 FLfile.write(CONFIG.globalFlaFolder + '/' + FlashName + ".json", jsonStr);
+FLfile.write(CONFIG.globalFlaFolder + '/' + FlashName + "NameMap.json", JSON.stringify(originNameHash.origin2New, null, 4));

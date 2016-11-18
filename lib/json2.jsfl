@@ -226,29 +226,6 @@ JsonDealTypes = {
             : "\"" + string + "\"";
     }
 
-
-    function is (value) {
-        var str = Object.prototype.toString.call(value);
-        switch (str) {
-            case　"[object Number]":
-                return "number";
-            case "[object String]":
-                return "string";
-            case "[object Boolean]":
-                return "boolean";
-            case "[object Function]":
-                return "function";
-            case "[object Array]":
-                return "array";
-            case "[object Window]":
-            case "[object Tools]":
-            case "[object SwfPanel]":
-                return "null";
-            default:
-                return "object";
-        }
-    }
-
     function debug (str) {
         // fl.trace(str);
     }
@@ -336,7 +313,14 @@ JsonDealTypes = {
                 length = value.length;
                 debug("12");
                 for (i = 0; i < length; i += 1) {
-                    partial[i] = str(i, value, maxlevel - 1) || "null";
+                    var isNotKSkip = true;
+                    if (is(rep) === "function") {
+                        var ret = rep.call(value, i, value[i]);
+                        if (ret.t === JsonDealTypes.Skip)
+                            isNotKSkip = false;
+                    }
+                    if (isNotKSkip)
+                        partial[partial.length] = str(i, value, maxlevel - 1) || "";
                 }
                 debug("13");
 
@@ -378,7 +362,7 @@ JsonDealTypes = {
                 for (k in value) {
                     var isNotKSkip = true;
                     if (is(rep) === "function") {
-                        var ret = rep.call(holder, k, value);
+                        var ret = rep.call(value, k, value);
                         if (ret.t === JsonDealTypes.Skip)
                             isNotKSkip = false;
                     }
