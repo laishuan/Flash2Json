@@ -1,4 +1,16 @@
 {
     "flaFolder": "file:///D|/Flash2Json/Res/",
-    "globalFlaFolder": "file:///D|/Flash2Json/Res/GlabolFla"
+    "globalFlaFolder": "file:///D|/Flash2Json/Res/GlabolFla",
+    "ExportFname": "export",
+    "UnexportFname": "unexport",
+    "sheetMaxH": 2048,
+    "sheetMaxW": 2048,
+    "sheetBorder": 2,
+    "UITypes": {
+        "Img": "Image",
+        "Anm": "Anim",
+        "Nod": "Node",
+        "Txt": "Text",
+        "LK": "Link"
+    }
 }

@@ -1,6 +1,6 @@
 // stringE.jsfl
 
-// (function () {
+(function () {
 	String.prototype.path = function () {
 		var index = this.lastIndexOf('\\');
 		index = (index == -1 ? this.lastIndexOf('/') : index);
@@ -46,4 +46,4 @@
 		else if(end == null || end.length > this.length) return false;
 	    else return this.indexOf(end, this.length - end.length) !== -1;
 	}
-// })()
+}())

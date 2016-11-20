@@ -1,40 +1,42 @@
 fl.outputPanel.clear();
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
+var doc = fl.getDocumentDOM();
+var library = doc.library;
 
 var selItems = library.getSelectedItems();
 
+var ref = function  (key, value) {
+	var ret = {};
+
+	if (key === "libraryItem") {
+		ret.v = value.name;
+		ret.t = JsonDealTypes.Deal;
+		return ret;
+	}
+	else if (key === "layer") {
+		ret.v = value.name;
+		ret.t = JsonDealTypes.Deal;
+		return ret;
+	}
+	else if (key === "brightness" 
+			|| key === "tintColor" 
+			|| key === "tintPercent"
+			|| key === "tintPercent"
+			|| key === "actionScript"
+			|| key === "packagePaths"
+			|| value.elementType == "shape") {	
+		ret.t = JsonDealTypes.Skip;
+		return ret;
+	}
+	else {
+		ret.v = value;
+		ret.t = JsonDealTypes.Deal;
+		return ret;
+	}
+}
 if (selItems.length == 0) {
-	print("没有选任何东西")
+	print(JSON.stringify(doc.getTimeline(), ref, 4));
 }
 else {
-	var ref = function  (key, value) {
-		var ret = {};
-
-		if (key === "libraryItem") {
-			ret.v = value.name;
-			ret.t = JsonDealTypes.Deal;
-			return ret;
-		}
-		else if (key === "layer") {
-			ret.v = value.name;
-			ret.t = JsonDealTypes.Deal;
-			return ret;
-		}
-		else if (key === "brightness" 
-				|| key === "tintColor" 
-				|| key === "tintPercent"
-				|| key === "tintPercent"
-				|| key === "actionScript"
-				|| key === "packagePaths"
-				|| value.elementType == "shape") {	
-			ret.t = JsonDealTypes.Skip;
-			return ret;
-		}
-		else {
-			ret.v = value;
-			ret.t = JsonDealTypes.Deal;
-			return ret;
-		}
-	}
 	print(JSON.stringify(selItems, ref, 4))
 }

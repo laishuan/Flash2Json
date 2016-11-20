@@ -2,19 +2,16 @@
 
 fl.outputPanel.clear();
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
-
-var ExportFname = "export";
-var UnexportFname = "unexport";
+var doc = fl.getDocumentDOM();
+var library = doc.library;
+var ExportFname = CONFIG.ExportFname;
+var UnexportFname = CONFIG.UnexportFname;
 var AutoNamePrefix = "auto";
 var FlashName = doc.path.fileName();
-
-var UITypes = {
-	"Img": "Image",
-	"Anm": "Anim",
-	"Nod": "Node",
-	"Txt": "Text",
-	"LK" : "Link"
-};
+var sheetExporter = new SpriteSheetExporter;
+sheetExporter.beginExport();
+var allImgArr = [];
+var UITypes = CONFIG.UITypes;
 
 var map = function (arr, fun) {
 	for (var i = 0; i < arr.length; i++) {
@@ -91,10 +88,15 @@ var getItemNewData = function (item, itemType, nameHash) {
 	ret.name = nameHash.getItemNewName(item);
 	ret.tp = itemType;
 	if (itemType === UITypes.Img) {
-		ret.path = FlashName + "image/";
+		var data = {};
+		data.item = item;
+		data.originName = item.name;
+		data.newName = ret.name;
+		allImgArr[allImgArr.length] = data;
 	}
 	else if (itemType === UITypes.Anm) {
-		ret.timeline = item.timeline;
+		var timelineData = {};
+		ret.timeline = transTimeLine(item.timeline, nameHash);
 		ret.frameCount = item.frameCount;
 		ret.layerCount = item.layerCount;
 	}
@@ -105,6 +107,108 @@ var getItemNewData = function (item, itemType, nameHash) {
 		ret.flashName = item.name.fileName();
 		ret.itemName = item.name;
 	}
+	return ret;
+}
+
+var transTimeLine = function (timeline, nameHash) {
+	var curLayer;
+	var curFrameIndex;
+
+	var trasLayer = function (layer) {
+		var ret = {};
+		ret.layerType = layer.layerType;
+		ret.visible = layer.visible;
+		ret.frameCount = layer.frameCount;
+
+		ret.frames = [];
+		for (var i = 0; i < layer.frames.length; i++) {
+			var oneFrame = layer.frames[i];
+			if (oneFrame.startFrame == i) {
+				curFrameIndex = i+1;
+				ret.frames[ret.frames.length] = transFrame(oneFrame);
+			}
+		};
+
+		return ret;
+	}
+	var transFrame = function (frame) {
+		var ret = {};
+
+		ret.name = frame.name;
+		ret.startFrame = frame.startFrame;
+		ret.duration = frame.duration;
+		ret.tweenType = frame.tweenType;
+		ret.tweenEasing = frame.tweenEasing;
+		ret.labelType = frame.labelType;
+		ret.isEmpty = frame.isEmpty;
+		ret.elements = [];
+		for (var i = 0; i < frame.elements.length; i++) {
+			var oneElement = frame.elements[i];
+			ret.elements[ret.elements.length] = transElement(oneElement);
+		};
+		return ret;
+
+	}
+	var transElement = function (element) {
+		var ret = {};
+
+		var attr = {};
+		ret.attr = attr;
+		attr.x = element.transformX;
+		attr.y = -element.transformY;
+		attr.scaleX = element.scaleX;
+		attr.scaleY = element.scaleY;
+		attr.skewX = element.skewX;
+		attr.skewY = element.skewY;
+		if (element.colorMode === "tint"
+			|| element.colorMode == "advanced") {
+			attr.colorAlphaPercent = element.colorAlphaPercent;
+			attr.colorRedPercent = element.colorRedPercent;
+			attr.colorGreenPercent = element.colorGreenPercent;
+			attr.colorBluePercent = element.colorBluePercent;
+			attr.colorAlphaAmount = element.colorAlphaAmount;
+			attr.colorRedAmount = element.colorRedAmount;
+			attr.colorGreenAmount = element.colorGreenAmount;
+			attr.colorBlueAmount = element.colorBlueAmount;
+		}
+		attr.blendMode = element.blendMode;
+
+		var childAttr = {};
+		ret.childAttr = childAttr;
+		childAttr.x = -element.transformationPoint.x;
+		childAttr.y = element.transformationPoint.y;
+		childAttr.insName = element.name;
+		if (element.elementType === "instance") {
+			var tp = checkItemType(element.libraryItem);
+			if (tp === UITypes.Img
+				|| tp === UITypes.Anm
+				|| tp === UITypes.Nod
+				|| tp === UITypes.LK ) {
+				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
+				childAttr.tp = tp
+			}
+			else {
+				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + timeline.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
+				childAttr.tp = UITypes.Nod;
+			}
+		}
+		else {
+			childAttr.tp = UITypes.Nod;
+		}
+		return ret;
+	}
+
+	var ret = {};
+	ret.frameCount = timeline.frameCount;
+	ret.layerCount = timeline.layerCount;
+	ret.layers = [];
+	for (var i = 0; i < timeline.layers.length; i++) {
+		var oneLayer = timeline.layers[i];
+		curLayer = oneLayer.name;
+		ret.layers[ret.layers.length] = trasLayer(oneLayer);
+	};
+
+
 	return ret;
 }
 
@@ -161,91 +265,51 @@ for (var i = 0; i < length; i++) {
 		exportLibs[exportLibs.length] = getItemNewData(item, itemType, originNameHash);
 	}
 };
-var keyArr = [
-			"",
-			"library",
-			"name",
-			"tp",
-			"path",
-			"timeline",
-			"layers", 
-			"frameCount",
-			"layerCount",
-			"libraryItem",
-			"layerType",
-			"frameCount",
-			"visible",
-			"frames",
-			"elements",
-			"isEmpty",
-			"hPixels",
-			"vPixels",
-			"x",
-			"y",
-			"scaleX",
-			"scaleY",
-			"skewX",
-			"skewY",
-			"transformationPoint",
-			"startFrame",
-			"duration",
-			"tweenType",
-			"depth"
-			];
 
-var keyInArr = function  (key, arr) {
-	for (var i = 0; i < keyArr.length; i++) {
-		if (key === arr[i])
-			return true;
-	};
-	return false;
-}
-var ref = function (key, value) {
-	var ret = {};
 
-	if (key === "libraryItem") {
-		ret.v = originNameHash.getNewNameByOrigin(value.name);
-		ret.t = JsonDealTypes.Deal;
-	}
-	else if (key === "layer") {
-		ret.v = value.name;
-		ret.t = JsonDealTypes.Deal;
-	}
-	else if (key === "brightness" 
-			|| key === "tintColor" 
-			|| key === "tintPercent"
-			|| key === "tintPercent"
-			|| key === "actionScript"
-			|| key === "packagePaths"
-			|| value.elementType == "shape") {	
-		ret.t = JsonDealTypes.Skip;
-	}
-	else if (is(key) === "number") {
-		if (value.elements !== undefined) {
-			if (value.startFrame === key) {
-				ret.t = JsonDealTypes.Deal;
-				ret.v = value;
-			}
-			else
-				ret.t = JsonDealTypes.Skip;
-		}
-		else
-		{
-				ret.t = JsonDealTypes.Deal;
-				ret.v = value;
-		}
-	}
-	else if (keyInArr(key, keyArr)) {
-		ret.v = value;
-		ret.t = JsonDealTypes.Deal;
-	}
-	else {
-		ret.t = JsonDealTypes.Skip;
-	}
-	return ret;
+var folderPath =  CONFIG.globalFlaFolder + '/' + FlashName;
+var jsonFile = folderPath + "/" +  FlashName + ".json";
+print(">>>>>>>>>>>>>>>>>>>>>>>>start write json file:" + jsonFile);
+var jsonStr = JSON.stringify(exportData, null, 4);
+if (!FLfile.exists(folderPath))
+	FLfile.createFolder(folderPath);
+FLfile.write(jsonFile, jsonStr);
+print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+
+var nameMapFile = folderPath + "/" + FlashName + "NameMap.json";
+print(">>>>>>>>>>>>>>>>>>>>>>>>start write name map file:" + nameMapFile)
+FLfile.write(nameMapFile, JSON.stringify(originNameHash.origin2New, null, 4));
+print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>start export sheet")
+for (var i = 0; i < allImgArr.length; i++) {
+	var data = allImgArr[i];
+	data.item.name = data.newName;
+	sheetExporter.addBitmap(data.item);
+};
+var sheetPath = folderPath + '/' + FlashName + "image.png";
+sheetExporter.algorithm  = "basic";
+sheetExporter.allowTrimming  = true;
+sheetExporter.autoSize  = true;
+sheetExporter.borderPadding  = CONFIG.sheetBorder;
+sheetExporter.stackDuplicateFrames = true;
+sheetExporter.layoutFormat  = "cocos2D v3";
+sheetExporter.maxSheetHeight  = CONFIG.sheetMaxH;
+sheetExporter.maxSheetWidth  = CONFIG.sheetMaxW;
+
+if (sheetExporter.sheetWidth > sheetExporter.maxSheetWidth
+	|| sheetExporter.sheetHeight > sheetExporter.maxSheetHeight)
+	print("error: sheet more than " + sheetExporter.maxSheetWidth + "*" + sheetExporter.maxSheetHeight);
+else {
+	var imageFormat = {};
+	imageFormat.format = "png";
+	imageFormat.bitDepth = 32;
+	imageFormat.backgroundColor = "#00000000";
+	sheetExporter.exportSpriteSheet(sheetPath, imageFormat);
 }
-var jsonStr = JSON.stringify(exportData, ref, 4);
-if (!FLfile.exists(CONFIG.globalFlaFolder))
-	FLfile.createFolder(CONFIG.globalFlaFolder);
-FLfile.write(CONFIG.globalFlaFolder + '/' + FlashName + ".json", jsonStr);
-FLfile.write(CONFIG.globalFlaFolder + '/' + FlashName + "NameMap.json", JSON.stringify(originNameHash.origin2New, null, 4));
+
+for (var i = 0; i < allImgArr.length; i++) {
+	var data = allImgArr[i];
+	data.item.name = data.originName.lastName();
+};
+print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
