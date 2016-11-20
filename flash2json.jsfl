@@ -104,8 +104,8 @@ var getItemNewData = function (item, itemType, nameHash) {
 		
 	}
 	else if (itemType === UITypes.LK) {
-		ret.flashName = item.name.fileName();
-		ret.itemName = item.name;
+		ret.flashName = item.name.firstName().fileName();
+		ret.itemName = item.name.lastName();
 	}
 	return ret;
 }
