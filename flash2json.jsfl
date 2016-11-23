@@ -97,8 +97,8 @@ var getItemNewData = function (item, itemType, nameHash) {
 	else if (itemType === UITypes.Anm) {
 		var timelineData = {};
 		ret.timeline = transTimeLine(item.timeline, nameHash);
-		ret.frameCount = item.frameCount;
-		ret.layerCount = item.layerCount;
+		// ret.frameCount = item.frameCount;
+		// ret.layerCount = item.layerCount;
 	}
 	else if (itemType === UITypes.Nod) {
 		
@@ -255,14 +255,34 @@ OriginNameHash.prototype.getItemNewName = function (item) {
 
 var originNameHash = new OriginNameHash();
 var exportData = {};
-var exportLibs = [];
+
+var exportLibs = {};
+var scene = {};
+var fileInfo = {};
+var linkFiles = [];
+
 exportData.library = exportLibs;
+exportData.fileInfo = fileInfo;
+exportData.scene = scene;
+exportData.linkFiles = linkFiles;
+
+fileInfo.name = doc.name.fileName();
+fileInfo.width = doc.width;
+fileInfo.height = doc.height;
+fileInfo.frameRate = doc.frameRate;
+
+scene.timeline = transTimeLine(doc.timelines[0], originNameHash);
+
 var length = library.items.length
 for (var i = 0; i < length; i++) {
 	var item = library.items[i];
 	var itemType = checkItemType(item);
 	if (itemType !== -1) {
-		exportLibs[exportLibs.length] = getItemNewData(item, itemType, originNameHash);
+		var newData = getItemNewData(item, itemType, originNameHash);
+		exportLibs[newData.name] = newData;
+		if (newData.tp === UITypes.LK) {
+			linkFiles[linkFiles.length] = newData.flashName;
+		}
 	}
 };
 
@@ -287,7 +307,7 @@ for (var i = 0; i < allImgArr.length; i++) {
 	data.item.name = data.newName;
 	sheetExporter.addBitmap(data.item);
 };
-var sheetPath = folderPath + '/' + FlashName + "image.png";
+var sheetPath = folderPath + '/' + FlashName + "image";
 sheetExporter.algorithm  = "basic";
 sheetExporter.allowTrimming  = true;
 sheetExporter.autoSize  = true;

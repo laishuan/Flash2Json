@@ -1,6 +1,6 @@
 {
-    "flaFolder": "file:///D|/Flash2Json/Res/",
-    "globalFlaFolder": "file:///D|/Flash2Json/Res/GlabolFla",
+    "flaFolder": "file:///D|/code/cocos/flash/test/simulator/win32/res/flashRes",
+    "globalFlaFolder": "file:///D|/code/cocos/flash/test/simulator/win32/res/flashRes",
     "ExportFname": "export",
     "UnexportFname": "unexport",
     "sheetMaxH": 2048,
