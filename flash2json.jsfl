@@ -8,11 +8,20 @@ var ExportFname = CONFIG.ExportFname;
 var UnexportFname = CONFIG.UnexportFname;
 var AutoNamePrefix = "auto";
 var FlashName = doc.path.fileName();
+var folderPath =  CONFIG.globalFlaFolder + '/' + FlashName;
 var sheetExporter = new SpriteSheetExporter;
 sheetExporter.beginExport();
 var allImgArr = [];
 var UITypes = CONFIG.UITypes;
 
+var floatEqual = function  (f1, f2) {
+	var absF = function (num) {
+		return num > 0 ? num : -num;
+	}
+	if (absF(f1 -f2) < 0.001)
+		return true;
+	return false;
+}
 var map = function (arr, fun) {
 	for (var i = 0; i < arr.length; i++) {
 		var v = arr[i];
@@ -73,6 +82,10 @@ var checkItemType = function (item) {
 		else if (item.itemType === "bitmap") {
 			if (item.name.firstName() === UnexportFname)
 				ret = UITypes.Nod;
+			else if (item.name.firstName().endsWith(".fla"))
+			{
+				ret = UITypes.LK;
+			}
 			else
 				ret = UITypes.Img;
 		}
@@ -83,29 +96,41 @@ var checkItemType = function (item) {
 	}
 }
 
+var newDataCache = {};
 var getItemNewData = function (item, itemType, nameHash) {
-	var ret = {};
-	ret.name = nameHash.getItemNewName(item);
-	ret.tp = itemType;
-	if (itemType === UITypes.Img) {
-		var data = {};
-		data.item = item;
-		data.originName = item.name;
-		data.newName = ret.name;
-		allImgArr[allImgArr.length] = data;
-	}
-	else if (itemType === UITypes.Anm) {
-		var timelineData = {};
-		ret.timeline = transTimeLine(item.timeline, nameHash);
-		// ret.frameCount = item.frameCount;
-		// ret.layerCount = item.layerCount;
-	}
-	else if (itemType === UITypes.Nod) {
-		
-	}
-	else if (itemType === UITypes.LK) {
-		ret.flashName = item.name.firstName().fileName();
-		ret.itemName = item.name.lastName();
+	var ret = newDataCache[item.name];
+	if (!ret) {	
+		ret = {};
+		ret.name = nameHash.getItemNewName(item);
+		ret.tp = itemType;
+		if (itemType === UITypes.Img) {
+			var data = {};
+			data.item = item;
+			data.originName = item.name;
+			data.newName = ret.name;
+			allImgArr[allImgArr.length] = data;
+		}
+		else if (itemType === UITypes.Anm) {
+			var timelineData = {};
+			ret.timeline = transTimeLine(item.timeline, nameHash);
+			// ret.frameCount = item.frameCount;
+			// ret.layerCount = item.layerCount;
+		}
+		else if (itemType === UITypes.Nod) {
+			
+		}
+		else if (itemType === UITypes.LK) {
+			ret.flashName = item.name.firstName().fileName();
+			var itemName = item.name.lkItemName();
+			var path = CONFIG.globalFlaFolder + "/" + ret.flashName + "/" + ret.flashName + "NameMap.json";
+			if (!FLfile.exists(path))
+				alert(ret.flashName + ".fla need run export script");
+			var nameMap = JSON.parse(FLfile.read(path));
+			if (!nameMap[itemName])
+				alert(itemName + " not in " + ret.flashName + ".fla, please check and run export script");
+			ret.itemName = nameMap[itemName];
+		}
+		newDataCache[item.name] = ret;
 	}
 	return ret;
 }
@@ -133,13 +158,16 @@ var transTimeLine = function (timeline, nameHash) {
 	}
 	var transFrame = function (frame) {
 		var ret = {};
-
-		ret.name = frame.name;
+		if (frame.name !== "")
+			ret.name = frame.name;
 		ret.startFrame = frame.startFrame;
 		ret.duration = frame.duration;
-		ret.tweenType = frame.tweenType;
-		ret.tweenEasing = frame.tweenEasing;
-		ret.labelType = frame.labelType;
+		if (frame.tweenType !== "none")
+			ret.tweenType = frame.tweenType;
+		if (frame.tweenEasing !== 0)
+			ret.tweenEasing = frame.tweenEasing;
+		if (frame.labelType !== "none")
+			ret.labelType = frame.labelType;
 		ret.isEmpty = frame.isEmpty;
 		ret.elements = [];
 		for (var i = 0; i < frame.elements.length; i++) {
@@ -156,10 +184,14 @@ var transTimeLine = function (timeline, nameHash) {
 		ret.attr = attr;
 		attr.x = element.transformX;
 		attr.y = -element.transformY;
-		attr.scaleX = element.scaleX;
-		attr.scaleY = element.scaleY;
-		attr.skewX = element.skewX;
-		attr.skewY = element.skewY;
+		if (!floatEqual(element.scaleX, 1))
+			attr.scaleX = element.scaleX;
+		if (!floatEqual(element.scaleY, 1))
+			attr.scaleY = element.scaleY;
+		if (!floatEqual(element.skewX, 0))
+			attr.skewX = element.skewX;
+		if (!floatEqual(element.skewY, 0))
+			attr.skewY = element.skewY;
 		if (element.colorMode === "tint"
 			|| element.colorMode == "advanced") {
 			attr.colorAlphaPercent = element.colorAlphaPercent;
@@ -177,15 +209,24 @@ var transTimeLine = function (timeline, nameHash) {
 		ret.childAttr = childAttr;
 		childAttr.x = -element.transformationPoint.x;
 		childAttr.y = element.transformationPoint.y;
-		childAttr.insName = element.name;
+		if (element.name !== "")
+			childAttr.insName = element.name;
 		if (element.elementType === "instance") {
 			var tp = checkItemType(element.libraryItem);
-			if (tp === UITypes.Img
-				|| tp === UITypes.Anm
-				|| tp === UITypes.Nod
-				|| tp === UITypes.LK ) {
+			childAttr.tp = tp
+			if (tp === UITypes.Anm ) {
 				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
-				childAttr.tp = tp
+			}
+			else if (tp === UITypes.Img) {
+				childAttr.path = nameHash.getItemNewName(element.libraryItem);
+			}
+			else if (tp === UITypes.LK) {
+				var newData = getItemNewData(element.libraryItem, tp, nameHash);
+				childAttr.flashName = newData.flashName;
+				childAttr.itemName = newData.itemName;
+			}
+			else if (tp === UITypes.Nod) {
+
 			}
 			else {
 				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + timeline.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
@@ -274,20 +315,23 @@ fileInfo.frameRate = doc.frameRate;
 scene.timeline = transTimeLine(doc.timelines[0], originNameHash);
 
 var length = library.items.length
+var linkFilesCache = {};
 for (var i = 0; i < length; i++) {
 	var item = library.items[i];
 	var itemType = checkItemType(item);
 	if (itemType !== -1) {
 		var newData = getItemNewData(item, itemType, originNameHash);
-		exportLibs[newData.name] = newData;
+		if (newData.tp === UITypes.Anm)
+			exportLibs[newData.name] = newData;
 		if (newData.tp === UITypes.LK) {
-			linkFiles[linkFiles.length] = newData.flashName;
+			if (!linkFilesCache[newData.flashName]) {
+				linkFiles[linkFiles.length] = newData.flashName;
+				linkFilesCache[newData.flashName] = true;
+			}
 		}
 	}
 };
 
-
-var folderPath =  CONFIG.globalFlaFolder + '/' + FlashName;
 var jsonFile = folderPath + "/" +  FlashName + ".json";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write json file:" + jsonFile);
 var jsonStr = JSON.stringify(exportData, null, 4);
@@ -295,6 +339,15 @@ if (!FLfile.exists(folderPath))
 	FLfile.createFolder(folderPath);
 FLfile.write(jsonFile, jsonStr);
 print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+
+var luaFile = folderPath + "/" +  FlashName + ".lua";
+print(">>>>>>>>>>>>>>>>>>>>>>>>start write lua file:" + luaFile);
+var luaStr = LUA.stringify(exportData);
+if (!FLfile.exists(folderPath))
+	FLfile.createFolder(folderPath);
+FLfile.write(luaFile, luaStr);
+print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+
 
 var nameMapFile = folderPath + "/" + FlashName + "NameMap.json";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write name map file:" + nameMapFile)

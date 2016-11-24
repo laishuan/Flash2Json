@@ -1,6 +1,6 @@
 {
-    "flaFolder": "file:///D|/code/cocos/flash/test/simulator/win32/res/flashRes",
-    "globalFlaFolder": "file:///D|/code/cocos/flash/test/simulator/win32/res/flashRes",
+    "flaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
+    "globalFlaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
     "ExportFname": "export",
     "UnexportFname": "unexport",
     "sheetMaxH": 2048,

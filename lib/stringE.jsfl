@@ -7,6 +7,12 @@
 		return (index != -1 ? this.slice(0, index+1) : -1);
 	}
 
+	String.prototype.lkItemName = function () {
+		var index = this.lastIndexOf('\\');
+		index = (index == -1 ? this.lastIndexOf('/') : index);
+		return (index != -1 ? this.slice(index+1) : -1);
+	}
+
 	String.prototype.firstName = function () {
 		var indexS = this.lastIndexOf('\\');
 		indexS = (indexS == -1 ? this.lastIndexOf('/') : indexS);
