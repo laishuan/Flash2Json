@@ -270,7 +270,7 @@ OriginNameHash.prototype.getNewNameByType = function (itemType) {
 	this.curIndexs[itemType] = count;
 	var ret = itemType + "_" + count;
 	if (itemType === UITypes.Img)
-		ret = ret + ".png";
+		ret = ret + '_' + FlashName + ".png";
 	return ret;
 }
 
@@ -279,16 +279,21 @@ OriginNameHash.prototype.getItemNewName = function (item) {
 	var newName = this.origin2New[name];
 	if (newName !== undefined) 
 		return newName;
-	else if (name.firstName() === ExportFname) {
-		newName = name.lastName();
-	}
 	else {
 		var itemType = checkItemType(item);
-		if (itemType !== -1) {
-			newName = this.getNewNameByType(itemType);
+		if (name.firstName() === ExportFname) {
+			if (itemType === UITypes.Anm)
+				newName = name.lastName();
+			else
+				newName =  this.getNewNameByType(itemType);
 		}
-		else
-			newName = -1;
+		else {
+			if (itemType !== -1) {
+				newName = this.getNewNameByType(itemType);
+			}
+			else
+				newName = -1;
+		}
 	}
 	this.origin2New[name] = newName;
 	return newName;
@@ -313,6 +318,8 @@ fileInfo.height = doc.height;
 fileInfo.frameRate = doc.frameRate;
 
 scene.timeline = transTimeLine(doc.timelines[0], originNameHash);
+scene.tp = UITypes.Anm;
+scene.name = "scene";
 
 var length = library.items.length
 var linkFilesCache = {};
