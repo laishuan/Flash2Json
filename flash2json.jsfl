@@ -96,6 +96,23 @@ var checkItemType = function (item) {
 	}
 }
 
+var otherFlashData = {};
+var getOtherFlashData = function (flashName) {
+	var data = otherFlashData[flashName];
+	if (!data) {
+		data = {};
+		var path = CONFIG.globalFlaFolder + "/" + flashName + "/" + flashName + "NameMap.json";
+		if (!FLfile.exists(path))
+			alert(flashName + ".fla need run export script");
+		data.nameMap = JSON.parse(FLfile.read(path));
+	// 	path = CONFIG.globalFlaFolder + "/" + flashName + "/" + flashName + ".json";
+	// 	if (!FLfile.exists(path))
+	// 		alert(flashName + ".fla need run export script");
+	// 	data.json = JSON.parse(FLfile.read(path));
+	}
+	return data;
+}
+
 var newDataCache = {};
 var getItemNewData = function (item, itemType, nameHash) {
 	var ret = newDataCache[item.name];
@@ -122,13 +139,11 @@ var getItemNewData = function (item, itemType, nameHash) {
 		else if (itemType === UITypes.LK) {
 			ret.flashName = item.name.firstName().fileName();
 			var itemName = item.name.lkItemName();
-			var path = CONFIG.globalFlaFolder + "/" + ret.flashName + "/" + ret.flashName + "NameMap.json";
-			if (!FLfile.exists(path))
-				alert(ret.flashName + ".fla need run export script");
-			var nameMap = JSON.parse(FLfile.read(path));
-			if (!nameMap[itemName])
+			var otherFlaData = getOtherFlashData(ret.flashName);
+			var newName = otherFlaData.nameMap[itemName];
+			if (!newName)
 				alert(itemName + " not in " + ret.flashName + ".fla, please check and run export script");
-			ret.itemName = nameMap[itemName];
+			ret.itemName = newName;
 		}
 		newDataCache[item.name] = ret;
 	}
@@ -213,20 +228,21 @@ var transTimeLine = function (timeline, nameHash) {
 			childAttr.insName = element.name;
 		if (element.elementType === "instance") {
 			var tp = checkItemType(element.libraryItem);
-			childAttr.tp = tp
+
 			if (tp === UITypes.Anm ) {
 				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
+				childAttr.tp = tp;
 			}
 			else if (tp === UITypes.Img) {
-				childAttr.path = nameHash.getItemNewName(element.libraryItem);
+				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
+				childAttr.tp = tp;
 			}
 			else if (tp === UITypes.LK) {
-				var newData = getItemNewData(element.libraryItem, tp, nameHash);
-				childAttr.flashName = newData.flashName;
-				childAttr.itemName = newData.itemName;
+				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
+				childAttr.tp = tp;
 			}
 			else if (tp === UITypes.Nod) {
-
+				childAttr.tp = tp;
 			}
 			else {
 				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + timeline.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
@@ -328,8 +344,8 @@ for (var i = 0; i < length; i++) {
 	var itemType = checkItemType(item);
 	if (itemType !== -1) {
 		var newData = getItemNewData(item, itemType, originNameHash);
-		if (newData.tp === UITypes.Anm)
-			exportLibs[newData.name] = newData;
+		// if (newData.tp === UITypes.Anm)
+		exportLibs[newData.name] = newData;
 		if (newData.tp === UITypes.LK) {
 			if (!linkFilesCache[newData.flashName]) {
 				linkFiles[linkFiles.length] = newData.flashName;
