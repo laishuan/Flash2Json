@@ -69,7 +69,7 @@ var checkItemType = function (item) {
 	}
 	else {
 		var ret;
-		if (item.itemType === "movie clip")	{
+		if (item.itemType === "movie clip" || item.itemType === "graphic")	{
 			if (item.name.firstName().endsWith(".fla"))
 			{
 				ret = UITypes.LK;
