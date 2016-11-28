@@ -41,11 +41,11 @@ var filter = function (arr, fun) {
 }
 
 var isMcNode = function (item) {
-	 if (item.timeline.frameCount == 1
+	 if (item.timeline.frameCount === 1
 		&& item.timeline.layerCount === 1) {
 	 	var frames = item.timeline.layers[0].frames;
 	 	var frame = frames[0];
-	 	if (frames.isEmpty) 
+	 	if (frame.isEmpty) 
 	 		return true;
 	 	else {
 	 		var elements = frame.elements;
@@ -53,7 +53,7 @@ var isMcNode = function (item) {
 	 			var element = elements[0];
 	 			if (element.elementType === "instance" 
 	 				&& element.instanceType == "symbol"
-	 				&& element.symbolType == "movie clip")
+	 				&& (element.symbolType == "movie clip" || element.symbolType == "graphic"))
 	 				return isMcNode(element.libraryItem);
 	 		}
 	 		else
@@ -128,10 +128,7 @@ var getItemNewData = function (item, itemType, nameHash) {
 			allImgArr[allImgArr.length] = data;
 		}
 		else if (itemType === UITypes.Anm) {
-			var timelineData = {};
 			ret.timeline = transTimeLine(item.timeline, nameHash);
-			// ret.frameCount = item.frameCount;
-			// ret.layerCount = item.layerCount;
 		}
 		else if (itemType === UITypes.Nod) {
 			
@@ -228,21 +225,20 @@ var transTimeLine = function (timeline, nameHash) {
 			childAttr.insName = element.name;
 		if (element.elementType === "instance") {
 			var tp = checkItemType(element.libraryItem);
-
+			var itemName = nameHash.getItemNewName(element.libraryItem);
+			childAttr.itemName = itemName;
+			childAttr.tp = tp;
 			if (tp === UITypes.Anm ) {
-				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
-				childAttr.tp = tp;
+				if (childAttr.loop && childAttr.firstFrame) {
+					childAttr.loop = element.loop;
+					childAttr.firstFrame = element.firstFrame;
+				}
 			}
 			else if (tp === UITypes.Img) {
-				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
-				childAttr.tp = tp;
 			}
 			else if (tp === UITypes.LK) {
-				childAttr.itemName = nameHash.getItemNewName(element.libraryItem);
-				childAttr.tp = tp;
 			}
 			else if (tp === UITypes.Nod) {
-				childAttr.tp = tp;
 			}
 			else {
 				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + timeline.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
