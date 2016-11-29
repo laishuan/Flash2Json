@@ -229,9 +229,9 @@ var transTimeLine = function (timeline, nameHash) {
 			childAttr.itemName = itemName;
 			childAttr.tp = tp;
 			if (tp === UITypes.Anm ) {
-				if (childAttr.loop && childAttr.firstFrame) {
+				if (element.loop) {
 					childAttr.loop = element.loop;
-					childAttr.firstFrame = element.firstFrame;
+					childAttr.firstFrame = element.firstFrame || 1;
 				}
 			}
 			else if (tp === UITypes.Img) {
