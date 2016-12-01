@@ -1,8 +1,8 @@
 {
     "flaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
     "globalFlaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
-    "ExportFname": "export",
-    "UnexportFname": "unexport",
+    "ExportFname": "_EPT",
+    "UnexportFname": "_UEPT",
     "sheetMaxH": 2048,
     "sheetMaxW": 2048,
     "sheetBorder": 2,
@@ -11,6 +11,7 @@
         "Anm": "Anim",
         "Nod": "Node",
         "Txt": "Text",
-        "LK": "Link"
+        "LK": "Link",
+        "Spt": "FSprite"
     }
 }

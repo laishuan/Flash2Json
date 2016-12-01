@@ -13,6 +13,7 @@ var sheetExporter = new SpriteSheetExporter;
 sheetExporter.beginExport();
 var allImgArr = [];
 var UITypes = CONFIG.UITypes;
+var defaultNodeName = "__DefaultNode"
 
 var floatEqual = function  (f1, f2) {
 	var absF = function (num) {
@@ -41,25 +42,117 @@ var filter = function (arr, fun) {
 }
 
 var isMcNode = function (item) {
-	 if (item.timeline.frameCount === 1
-		&& item.timeline.layerCount === 1) {
-	 	var frames = item.timeline.layers[0].frames;
-	 	var frame = frames[0];
-	 	if (frame.isEmpty) 
-	 		return true;
-	 	else {
-	 		var elements = frame.elements;
-	 		if (elements.length === 1) {
-	 			var element = elements[0];
-	 			if (element.elementType === "instance" 
-	 				&& element.instanceType == "symbol"
-	 				&& (element.symbolType == "movie clip" || element.symbolType == "graphic"))
-	 				return isMcNode(element.libraryItem);
-	 		}
-	 		else
-	 			return false;
-	 	}
-	 }
+	var isElmentNode = function (element) {
+		var libraryItem = element.libraryItem
+		if (element.elementType === "instance") {
+			// print("name:" + libraryItem.name + " is instance")
+			if (element.instanceType == "symbol"
+				&& (element.symbolType === "movie clip" || element.symbolType === "graphic")) {
+				// print("name:" + libraryItem.name + " is movie clip")
+				if (!isMcNode(libraryItem)) {
+					// print("name:" + libraryItem.name + " is not node")
+					return false
+				}
+			}
+			else if (element.instanceType === "bitmap") {
+				if (libraryItem.name.firstName() !== UnexportFname) {
+					return false
+				}
+			}
+			else
+				return false
+
+		}
+		else
+			return false
+		return true
+	}
+	var isFrameNode = function (frame) {
+ 		var elements = frame.elements;
+ 		for (var i = 0; i < elements.length; i++) {
+ 			var element = elements[i]
+ 			if (!isElmentNode(element))
+ 				return false
+ 		};
+ 		return true
+	}
+
+	var isLayerNode = function (layer) {
+		var frame = layer.frames[0];
+		return isFrameNode(frame)
+	}
+
+	if (item.timeline.frameCount === 1) {
+		var timeline = item.timeline;
+		for (var i = 0; i < timeline.layers.length; i++) {
+			var oneLayer = timeline.layers[i];
+			if (!isLayerNode(oneLayer))
+				return false
+		};
+		return true
+	}
+	else
+		return false
+}
+
+var isMcSpt = function (item) {
+	var isElmentSpt = function (element) {
+		var libraryItem = element.libraryItem
+		if (element.elementType === "instance") {
+			// print("name:" + libraryItem.name + " is instance")
+			if (element.instanceType == "symbol"
+				&& (element.symbolType === "movie clip" || element.symbolType === "graphic")) {
+				// print("name:" + libraryItem.name + " is movie clip")
+				if (!isMcSpt(libraryItem)) {
+					// print("name:" + libraryItem.name + " is not Spt")
+					return false
+				}
+				else
+				{
+					// print("name:" + libraryItem.name + " is Spt")
+					return true
+				}
+			}
+			else {
+				// print("name:" + libraryItem.name + " is Spt")
+				return true
+			}
+		}
+		else
+			return true
+	}
+	var isFrameSpt = function (frame) {
+ 		var elements = frame.elements;
+ 		for (var i = 0; i < elements.length; i++) {
+ 			var element = elements[i]
+ 			if (!isElmentSpt(element)) {
+ 				// print("element.index:" + i + " is not spt")
+ 				return false
+ 			}
+ 		};
+ 		return true
+	}
+
+	var isLayerSpt = function (layer) {
+		var frame = layer.frames[0];
+		return isFrameSpt(frame)
+	}
+
+	if (item.timeline.frameCount === 1) {
+		var timeline = item.timeline;
+		for (var i = 0; i < timeline.layers.length; i++) {
+			var oneLayer = timeline.layers[i];
+			if (!isLayerSpt(oneLayer)) {
+				// print("layer.name:" + oneLayer.name + " is not spt")
+				return false
+			}
+		};
+		return true
+	}
+	else {
+		// print("more than 1 frame")
+		return false
+	}
 }
 var checkItemType = function (item) {
 	var cache = {};
@@ -76,6 +169,8 @@ var checkItemType = function (item) {
 			}
 			else if (isMcNode(item))
 				ret = UITypes.Nod;
+			else if (isMcSpt(item))
+				ret = UITypes.Spt
 			else
 				ret = UITypes.Anm;
 		}
@@ -114,6 +209,9 @@ var getOtherFlashData = function (flashName) {
 }
 
 var newDataCache = {};
+var curTimeLine;
+var curLayer;
+var curFrameIndex;
 var getItemNewData = function (item, itemType, nameHash) {
 	var ret = newDataCache[item.name];
 	if (!ret) {	
@@ -122,13 +220,31 @@ var getItemNewData = function (item, itemType, nameHash) {
 		ret.tp = itemType;
 		if (itemType === UITypes.Img) {
 			var data = {};
+			ret.path = ret.name + '_' + FlashName + ".png";
 			data.item = item;
 			data.originName = item.name;
-			data.newName = ret.name;
+			data.newName = ret.path;
 			allImgArr[allImgArr.length] = data;
 		}
 		else if (itemType === UITypes.Anm) {
-			ret.timeline = transTimeLine(item.timeline, nameHash);
+			ret.timeline = transTimeLine(item.timeline, nameHash, false);
+		}
+		else if (itemType === UITypes.Spt) {
+			var timeline = item.timeline
+			curTimeLine = timeline;
+			curFrameIndex = 1;
+			var retElements = [];
+			ret.element = retElements;
+			for (var i = timeline.layers.length-1; i >= 0; i--) {
+				var oneLayer = timeline.layers[i];
+				curLayer = oneLayer;
+				var frame = oneLayer.frames[0]
+				var elements = frame.elements;
+				for (var j = 0; j < elements.length; j++) {
+					var element = elements[j]
+					retElements[retElements.length] = transElement(element, nameHash, false);
+				};
+			};
 		}
 		else if (itemType === UITypes.Nod) {
 			
@@ -147,10 +263,78 @@ var getItemNewData = function (item, itemType, nameHash) {
 	return ret;
 }
 
-var transTimeLine = function (timeline, nameHash) {
-	var curLayer;
-	var curFrameIndex;
+var transElement = function (element, nameHash, isScene) {
+	var ret = {};
 
+	var attr = {};
+	ret.attr = attr;
+	attr.x = element.transformX;
+	if (!isScene)
+		attr.y = -element.transformY;
+	else
+		attr.y = -element.transformY + doc.height
+	if (!floatEqual(element.scaleX, 1))
+		attr.scaleX = element.scaleX;
+	if (!floatEqual(element.scaleY, 1))
+		attr.scaleY = element.scaleY;
+	if (!floatEqual(element.skewX, 0))
+		attr.skewX = element.skewX;
+	if (!floatEqual(element.skewY, 0))
+		attr.skewY = element.skewY;
+	if (element.colorMode === "tint"
+		|| element.colorMode == "advanced") {
+		attr.colorAlphaPercent = element.colorAlphaPercent;
+		attr.colorRedPercent = element.colorRedPercent;
+		attr.colorGreenPercent = element.colorGreenPercent;
+		attr.colorBluePercent = element.colorBluePercent;
+		attr.colorAlphaAmount = element.colorAlphaAmount;
+		attr.colorRedAmount = element.colorRedAmount;
+		attr.colorGreenAmount = element.colorGreenAmount;
+		attr.colorBlueAmount = element.colorBlueAmount;
+	}
+	attr.blendMode = element.blendMode;
+
+	var childAttr = {};
+	ret.childAttr = childAttr;
+	childAttr.x = -element.transformationPoint.x;
+	childAttr.y = element.transformationPoint.y;
+	if (element.name !== "")
+		childAttr.insName = element.name;
+	if (element.elementType === "instance") {
+		var tp = checkItemType(element.libraryItem);
+		var itemName = nameHash.getItemNewName(element.libraryItem);
+		childAttr.itemName = itemName;
+		childAttr.tp = tp;
+		if (tp === UITypes.Anm ) {
+			if (element.loop) {
+				childAttr.loop = element.loop;
+				childAttr.firstFrame = element.firstFrame || 1;
+			}
+		}
+		else if (tp === UITypes.Img) {
+		}
+		else if (tp === UITypes.LK) {
+		}
+		else if (tp === UITypes.Nod) {
+		}
+		else if (tp === UITypes.Spt) {
+
+		}
+		else {
+			print("waring: unsurport elementType:" + element.elementType + " in timeline:" + curTimeLine.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
+			childAttr.tp = UITypes.Nod;
+			childAttr.itemName = defaultNodeName;
+		}
+	}
+	else {
+		childAttr.tp = UITypes.Nod;
+		childAttr.itemName = defaultNodeName;
+	}
+	return ret;
+}
+
+var transTimeLine = function (timeline, nameHash, isScene) {
+	curTimeLine = timeline;
 	var trasLayer = function (layer) {
 		var ret = {};
 		ret.layerType = layer.layerType;
@@ -184,71 +368,10 @@ var transTimeLine = function (timeline, nameHash) {
 		ret.elements = [];
 		for (var i = 0; i < frame.elements.length; i++) {
 			var oneElement = frame.elements[i];
-			ret.elements[ret.elements.length] = transElement(oneElement);
+			ret.elements[ret.elements.length] = transElement(oneElement, nameHash, isScene);
 		};
 		return ret;
 
-	}
-	var transElement = function (element) {
-		var ret = {};
-
-		var attr = {};
-		ret.attr = attr;
-		attr.x = element.transformX;
-		attr.y = -element.transformY;
-		if (!floatEqual(element.scaleX, 1))
-			attr.scaleX = element.scaleX;
-		if (!floatEqual(element.scaleY, 1))
-			attr.scaleY = element.scaleY;
-		if (!floatEqual(element.skewX, 0))
-			attr.skewX = element.skewX;
-		if (!floatEqual(element.skewY, 0))
-			attr.skewY = element.skewY;
-		if (element.colorMode === "tint"
-			|| element.colorMode == "advanced") {
-			attr.colorAlphaPercent = element.colorAlphaPercent;
-			attr.colorRedPercent = element.colorRedPercent;
-			attr.colorGreenPercent = element.colorGreenPercent;
-			attr.colorBluePercent = element.colorBluePercent;
-			attr.colorAlphaAmount = element.colorAlphaAmount;
-			attr.colorRedAmount = element.colorRedAmount;
-			attr.colorGreenAmount = element.colorGreenAmount;
-			attr.colorBlueAmount = element.colorBlueAmount;
-		}
-		attr.blendMode = element.blendMode;
-
-		var childAttr = {};
-		ret.childAttr = childAttr;
-		childAttr.x = -element.transformationPoint.x;
-		childAttr.y = element.transformationPoint.y;
-		if (element.name !== "")
-			childAttr.insName = element.name;
-		if (element.elementType === "instance") {
-			var tp = checkItemType(element.libraryItem);
-			var itemName = nameHash.getItemNewName(element.libraryItem);
-			childAttr.itemName = itemName;
-			childAttr.tp = tp;
-			if (tp === UITypes.Anm ) {
-				if (element.loop) {
-					childAttr.loop = element.loop;
-					childAttr.firstFrame = element.firstFrame || 1;
-				}
-			}
-			else if (tp === UITypes.Img) {
-			}
-			else if (tp === UITypes.LK) {
-			}
-			else if (tp === UITypes.Nod) {
-			}
-			else {
-				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + timeline.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
-				childAttr.tp = UITypes.Nod;
-			}
-		}
-		else {
-			childAttr.tp = UITypes.Nod;
-		}
-		return ret;
 	}
 
 	var ret = {};
@@ -281,8 +404,8 @@ OriginNameHash.prototype.getNewNameByType = function (itemType) {
 	var count = this.curIndexs[itemType] + 1;
 	this.curIndexs[itemType] = count;
 	var ret = itemType + "_" + count;
-	if (itemType === UITypes.Img)
-		ret = ret + '_' + FlashName + ".png";
+	// if (itemType === UITypes.Img)
+	// 	ret = ret + '_' + FlashName + ".png";
 	return ret;
 }
 
@@ -294,7 +417,8 @@ OriginNameHash.prototype.getItemNewName = function (item) {
 	else {
 		var itemType = checkItemType(item);
 		if (name.firstName() === ExportFname) {
-			if (itemType === UITypes.Anm)
+			if (itemType === UITypes.Anm
+				|| itemType === UITypes.Spt)
 				newName = name.lastName();
 			else
 				newName =  this.getNewNameByType(itemType);
@@ -329,7 +453,7 @@ fileInfo.width = doc.width;
 fileInfo.height = doc.height;
 fileInfo.frameRate = doc.frameRate;
 
-scene.timeline = transTimeLine(doc.timelines[0], originNameHash);
+scene.timeline = transTimeLine(doc.timelines[0], originNameHash, true);
 scene.tp = UITypes.Anm;
 scene.name = "scene";
 
@@ -350,6 +474,11 @@ for (var i = 0; i < length; i++) {
 		}
 	}
 };
+
+exportLibs[defaultNodeName] = {
+    "name": defaultNodeName,
+    "tp": "Node"
+}
 
 var jsonFile = folderPath + "/" +  FlashName + ".json";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write json file:" + jsonFile);
