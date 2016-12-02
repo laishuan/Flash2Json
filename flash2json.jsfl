@@ -281,9 +281,11 @@ var transElement = function (element, nameHash, isScene) {
 		attr.skewX = element.skewX;
 	if (!floatEqual(element.skewY, 0))
 		attr.skewY = element.skewY;
+	if (element.colorMode === "alpha")
+		attr.alpha = element.colorAlphaPercent/100*255;
+
 	if (element.colorMode === "tint"
 		|| element.colorMode == "advanced") {
-		attr.colorAlphaPercent = element.colorAlphaPercent;
 		attr.colorRedPercent = element.colorRedPercent;
 		attr.colorGreenPercent = element.colorGreenPercent;
 		attr.colorBluePercent = element.colorBluePercent;
