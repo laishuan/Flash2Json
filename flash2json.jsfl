@@ -13,7 +13,8 @@ var sheetExporter = new SpriteSheetExporter;
 sheetExporter.beginExport();
 var allImgArr = [];
 var UITypes = CONFIG.UITypes;
-var defaultNodeName = "__DefaultNode"
+var defaultNodeName = "__DefaultNode";
+var defaultTextName = "__Text";
 
 var floatEqual = function  (f1, f2) {
 	var absF = function (num) {
@@ -242,7 +243,14 @@ var getItemNewData = function (item, itemType, nameHash) {
 				var elements = frame.elements;
 				for (var j = 0; j < elements.length; j++) {
 					var element = elements[j]
-					retElements[retElements.length] = transElement(element, nameHash, false);
+					var aftTrans = transElement(element, nameHash, false);
+					var insName = aftTrans.childAttr.insName
+					if (!insName || insName.length === 0) {
+						if (frame.name && frame.length > 0) {
+							aftTrans.childAttr.insName = frame.name + "__" + (j+1)
+						}
+					}
+					retElements[retElements.length] = aftTrans
 				};
 			};
 		}
@@ -318,6 +326,8 @@ var transElement = function (element, nameHash, isScene) {
 		else if (tp === UITypes.LK) {
 		}
 		else if (tp === UITypes.Nod) {
+			childAttr.tp = UITypes.Nod;
+			childAttr.itemName = defaultNodeName;
 		}
 		else if (tp === UITypes.Spt) {
 
@@ -327,6 +337,21 @@ var transElement = function (element, nameHash, isScene) {
 			childAttr.tp = UITypes.Nod;
 			childAttr.itemName = defaultNodeName;
 		}
+	}
+	else if (element.elementType === "text" ) {
+		childAttr.tp = UITypes.Txt;
+		childAttr.itemName = defaultTextName;
+		childAttr.txt = element.getTextString();
+		// childAttr.txt = childAttr.txt.tounicode()
+		childAttr.size = element.getTextAttr("size");
+		childAttr.face = element.getTextAttr("face");
+		var fillColor = element.getTextAttr("fillColor");
+		childAttr.r = "0x" + fillColor.slice(1,3);
+		childAttr.g = "0x" + fillColor.slice(3,5);
+		childAttr.b = "0x" + fillColor.slice(5,7);
+		childAttr.alignment = element.getTextAttr("alignment");
+		childAttr.width = element.objectSpaceBounds.right;
+		childAttr.height = element.objectSpaceBounds.bottom;
 	}
 	else {
 		childAttr.tp = UITypes.Nod;
@@ -466,8 +491,8 @@ for (var i = 0; i < length; i++) {
 	var itemType = checkItemType(item);
 	if (itemType !== -1) {
 		var newData = getItemNewData(item, itemType, originNameHash);
-		// if (newData.tp === UITypes.Anm)
-		exportLibs[newData.name] = newData;
+		if (newData.tp !== UITypes.Nod)
+			exportLibs[newData.name] = newData;
 		if (newData.tp === UITypes.LK) {
 			if (!linkFilesCache[newData.flashName]) {
 				linkFiles[linkFiles.length] = newData.flashName;
@@ -479,7 +504,12 @@ for (var i = 0; i < length; i++) {
 
 exportLibs[defaultNodeName] = {
     "name": defaultNodeName,
-    "tp": "Node"
+    "tp": UITypes.Nod
+}
+
+exportLibs[defaultTextName] = {
+    "name": defaultNodeName,
+    "tp": UITypes.Txt
 }
 
 var jsonFile = folderPath + "/" +  FlashName + ".json";

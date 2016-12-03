@@ -52,4 +52,15 @@
 		else if(end == null || end.length > this.length) return false;
 	    else return this.indexOf(end, this.length - end.length) !== -1;
 	}
+
+	String.prototype.tounicode = function ()
+	{
+	   if(this == '') return this;
+	   var str =''; 
+	   for(var i=0;i<this.length;i++)
+	   {
+	      str+="\\u"+parseInt(this[i].charCodeAt(0),10).toString(16);
+	   }
+	   return str;
+	}
 }())

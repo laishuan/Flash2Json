@@ -22,6 +22,34 @@ if (typeof LUA !== "object") {
 	var BOOLTYPE = 5;
 	var OTHERTYPE = 100;
 	// body...
+	var rx_escapable = /[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+    var meta = {    // table of character substitutions
+            "\b": "\\b",
+            "\t": "\\t",
+            "\n": "\\n",
+            "\f": "\\f",
+            "\r": "\\r",
+            "\"": "\\\"",
+            "\\": "\\\\"
+        };
+    function quote1(string) {
+
+// If the string contains no control characters, no quote characters, and no
+// backslash characters, then we can safely slap some quotes around it.
+// Otherwise we must also replace the offending characters with safe escape
+// sequences.
+
+        rx_escapable.lastIndex = 0;
+        return rx_escapable.test(string)
+            ? "\"" + string.replace(rx_escapable, function (a) {
+                var c = meta[a];
+                return typeof c === "string"
+                    ? c
+                    : "\\u" + ("0000" + a.charCodeAt(0).toString(16)).slice(-4);
+            }) + "\""
+            : "\"" + string + "\"";
+    }
+
 	function getType (obj) {
 		if (typeof(obj) == "number") {
 			return NUMTYPE;
@@ -44,7 +72,7 @@ if (typeof LUA !== "object") {
 	}
 
 	var transKey = function (key) {
-		return "["+quote+key+quote+"]";
+		return "["+quote1(key)+"]";
 	}
 
 	var getSpace = function (intent) {
@@ -114,10 +142,10 @@ if (typeof LUA !== "object") {
 			output += getSpace(intent);
 
 		    if (key) {
-		    	output +=  key + " " + eq + " " + quote + input + quote;
+		    	output +=  key + " " + eq + " " + quote1(input);
 		    }
 		    else {
-			    output += quote + input + quote;
+			    output += quote1(input);
 		    }
 		}
 		else if (typeInput == BOOLTYPE) {
