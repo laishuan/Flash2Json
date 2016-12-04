@@ -231,28 +231,30 @@ var getItemNewData = function (item, itemType, nameHash) {
 			ret.timeline = transTimeLine(item.timeline, nameHash, false);
 		}
 		else if (itemType === UITypes.Spt) {
-			var timeline = item.timeline
-			curTimeLine = timeline;
-			curFrameIndex = 1;
-			var retElements = [];
-			ret.element = retElements;
-			for (var i = timeline.layers.length-1; i >= 0; i--) {
-				var oneLayer = timeline.layers[i];
-				curLayer = oneLayer;
-				var frame = oneLayer.frames[0]
-				var elements = frame.elements;
-				for (var j = 0; j < elements.length; j++) {
-					var element = elements[j]
-					var aftTrans = transElement(element, nameHash, false);
-					var insName = aftTrans.childAttr.insName
-					if (!insName || insName.length === 0) {
-						if (frame.name && frame.length > 0) {
-							aftTrans.childAttr.insName = frame.name + "__" + (j+1)
-						}
-					}
-					retElements[retElements.length] = aftTrans
-				};
-			};
+			// var timeline = item.timeline
+			// curTimeLine = timeline;
+			// curFrameIndex = 1;
+			// var retElements = [];
+			// ret.element = retElements;
+			// for (var i = timeline.layers.length-1; i >= 0; i--) {
+			// 	var oneLayer = timeline.layers[i];
+			// 	curLayer = oneLayer;
+			// 	var frame = oneLayer.frames[0]
+			// 	var elements = frame.elements;
+			// 	for (var j = 0; j < elements.length; j++) {
+			// 		var element = elements[j]
+			// 		var aftTrans = transElement(element, nameHash, false);
+			// 		var insName = aftTrans.childAttr.insName
+			// 		if (!insName || insName.length === 0) {
+			// 			if (frame.name && frame.length > 0) {
+			// 				aftTrans.childAttr.insName = frame.name + "__" + (j+1)
+			// 			}
+			// 		}
+			// 		aftTrans.layerType = oneLayer.layerType;
+			// 		retElements[retElements.length] = aftTrans
+			// 	};
+			// };
+			ret.timeline = transTimeLine(item.timeline, nameHash, false);
 		}
 		else if (itemType === UITypes.Nod) {
 			
@@ -294,13 +296,22 @@ var transElement = function (element, nameHash, isScene) {
 
 	if (element.colorMode === "tint"
 		|| element.colorMode == "advanced") {
-		attr.colorRedPercent = element.colorRedPercent;
-		attr.colorGreenPercent = element.colorGreenPercent;
-		attr.colorBluePercent = element.colorBluePercent;
-		attr.colorAlphaAmount = element.colorAlphaAmount;
-		attr.colorRedAmount = element.colorRedAmount;
-		attr.colorGreenAmount = element.colorGreenAmount;
-		attr.colorBlueAmount = element.colorBlueAmount;
+		attr.rp = element.colorRedPercent;
+		attr.gp = element.colorGreenPercent;
+		attr.bp = element.colorBluePercent;
+		if (attr.rp < 0) {
+			attr.rp = 0
+		}
+		if (attr.gp < 0) {
+			attr.gp = 0
+		}
+		if (attr.bp < 0) {
+			attr.bp = 0
+		}
+		attr.aa = element.colorAlphaAmount;
+		attr.ra = element.colorRedAmount;
+		attr.ga = element.colorGreenAmount;
+		attr.ba = element.colorBlueAmount;
 	}
 	attr.blendMode = element.blendMode;
 
