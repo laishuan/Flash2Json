@@ -16,6 +16,10 @@ var UITypes = CONFIG.UITypes;
 var defaultNodeName = "__DefaultNode";
 var defaultTextName = "__Text";
 
+var isTypeAnim = function  (itemType) {
+	return (itemType === "movie clip" || itemType === "graphic" || itemType === "button")
+}
+
 var floatEqual = function  (f1, f2) {
 	var absF = function (num) {
 		return num > 0 ? num : -num;
@@ -48,7 +52,7 @@ var isMcNode = function (item) {
 		if (element.elementType === "instance") {
 			// print("name:" + libraryItem.name + " is instance")
 			if (element.instanceType == "symbol"
-				&& (element.symbolType === "movie clip" || element.symbolType === "graphic")) {
+				&& (isTypeAnim(element.symbolType))) {
 				// print("name:" + libraryItem.name + " is movie clip")
 				if (!isMcNode(libraryItem)) {
 					// print("name:" + libraryItem.name + " is not node")
@@ -102,7 +106,7 @@ var isMcSpt = function (item) {
 		if (element.elementType === "instance") {
 			// print("name:" + libraryItem.name + " is instance")
 			if (element.instanceType == "symbol"
-				&& (element.symbolType === "movie clip" || element.symbolType === "graphic")) {
+				&& (isTypeAnim(element.symbolType))) {
 				// print("name:" + libraryItem.name + " is movie clip")
 				if (!isMcSpt(libraryItem)) {
 					// print("name:" + libraryItem.name + " is not Spt")
@@ -163,7 +167,8 @@ var checkItemType = function (item) {
 	}
 	else {
 		var ret;
-		if (item.itemType === "movie clip" || item.itemType === "graphic")	{
+		// print("item.name:" + item.name + " type:" + item.itemType )
+		if (isTypeAnim(item.itemType))	{
 			if (item.name.firstName().endsWith(".fla"))
 			{
 				ret = UITypes.LK;
