@@ -57,7 +57,7 @@ var tranOneTimeLine = function (timeline, itemName) {
 								fl.trace("distributeToLayers")
 								doc.distributeToLayers();
 								tranOneTimeLine2(newMc.timeline, newMc.name);
-								return tranOneTimeLine(timeline, itemName)
+								// return tranOneTimeLine(timeline, itemName)
 							}
 						}
 						else {
@@ -125,7 +125,7 @@ var tranOneTimeLine3 = function (timeline, itemName) {
 								fl.trace("distributeToLayers")
 								doc.distributeToLayers();
 								tranOneTimeLine2(newMc.timeline, newMc.name);
-								return tranOneTimeLine(timeline, itemName)
+								// return tranOneTimeLine(timeline, itemName)
 							}
 						}
 						else {

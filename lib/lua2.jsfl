@@ -95,13 +95,17 @@ if (typeof LUA !== "object") {
 		    else {
 			    output += left + enter;
 		    }
-
+		    var hadValue = false
 		    for (var key in input) {
 		    	var value = input[key];
-		    	output += toLuaTable(value, transKey(key), intent + 1);
-		    	output += ',' + enter;
+		    	if (value !== undefined) {
+			    	output += toLuaTable(value, transKey(key), intent + 1);
+			    	output += ',' + enter;
+			    	hadValue = true
+		    	}
 		    }
-		    output = output.slice(0, output.length-2) + enter;
+		    if (hadValue)
+			    output = output.slice(0, output.length-2) + enter;
 			output += getSpace(intent);
 		    output += right;
 		}

@@ -407,6 +407,12 @@ var transTimeLine = function (timeline, nameHash, isScene) {
 			ret.tweenEasing = frame.tweenEasing;
 		if (frame.labelType !== "none")
 			ret.labelType = frame.labelType;
+		if (frame.motionTweenRotate !== "none" 
+			&& frame.motionTweenRotate !== "auto" 
+			&& frame.motionTweenRotateTimes !== 0) {
+			ret.rotateType = frame.motionTweenRotate;
+			ret.rotateTimes = frame.motionTweenRotateTimes;
+		}
 		ret.isEmpty = frame.isEmpty;
 		ret.elements = [];
 		for (var i = 0; i < frame.elements.length; i++) {
@@ -524,7 +530,7 @@ exportLibs[defaultNodeName] = {
 }
 
 exportLibs[defaultTextName] = {
-    "name": defaultNodeName,
+    "name": defaultTextName,
     "tp": UITypes.Txt
 }
 
