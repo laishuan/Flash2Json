@@ -3,9 +3,21 @@
     "globalFlaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
     "ExportFname": "_EPT",
     "UnexportFname": "_UEPT",
+    "sheetConfig": {
+        "format": "RGBA8888",
+        "layoutFormat": "cocos2D v3",
+        "maxSheetHeight": 2048,
+        "maxSheetWidth": 2048,
+        "algorithm": "maxRects",
+        "autoSize": true,
+        "allowTrimming": false,
+        "allowRotate": false,
+        "stackDuplicateFrames": true,
+        "borderPadding": 0,
+        "shapePadding": 1
+    },
     "sheetMaxH": 2048,
     "sheetMaxW": 2048,
-    "sheetBorder": 2,
     "UITypes": {
         "Img": "Image",
         "Anm": "Anim",

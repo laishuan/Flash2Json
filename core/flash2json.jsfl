@@ -563,14 +563,10 @@ for (var i = 0; i < allImgArr.length; i++) {
 	sheetExporter.addBitmap(data.item);
 };
 var sheetPath = folderPath + '/' + FlashName + "image";
-sheetExporter.algorithm  = "basic";
-sheetExporter.allowTrimming  = true;
-sheetExporter.autoSize  = true;
-sheetExporter.borderPadding  = CONFIG.sheetBorder;
-sheetExporter.stackDuplicateFrames = true;
-sheetExporter.layoutFormat  = "cocos2D v3";
-sheetExporter.maxSheetHeight  = CONFIG.sheetMaxH;
-sheetExporter.maxSheetWidth  = CONFIG.sheetMaxW;
+var sheetConfig = CONFIG.sheetConfig;
+for (var k in sheetConfig) {
+	sheetExporter[k] = sheetConfig[k];
+}
 
 if (sheetExporter.sheetWidth > sheetExporter.maxSheetWidth
 	|| sheetExporter.sheetHeight > sheetExporter.maxSheetHeight)
