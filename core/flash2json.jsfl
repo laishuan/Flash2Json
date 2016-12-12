@@ -12,6 +12,7 @@ var folderPath =  CONFIG.globalFlaFolder + '/' + FlashName;
 var sheetExporter = new SpriteSheetExporter;
 sheetExporter.beginExport();
 var allImgArr = [];
+var allMuscArr = [];
 var UITypes = CONFIG.UITypes;
 var defaultNodeName = "__DefaultNode";
 var defaultTextName = "__Text";
@@ -160,6 +161,10 @@ var isMcSpt = function (item) {
 	}
 }
 var checkItemType = function (item) {
+
+	if (item.itemType === "folder")
+		return -1;
+
 	var cache = {};
 	var cacheValue = cache[item.name];
 	if (cacheValue !== undefined) {
@@ -168,12 +173,11 @@ var checkItemType = function (item) {
 	else {
 		var ret;
 		// print("item.name:" + item.name + " type:" + item.itemType )
-		if (isTypeAnim(item.itemType))	{
-			if (item.name.firstName().endsWith(".fla"))
-			{
-				ret = UITypes.LK;
-			}
-			else if (isMcNode(item))
+		if (item.name.firstName().endsWith(".fla")) {
+			ret = UITypes.LK;
+		}
+		else if (isTypeAnim(item.itemType))	{
+			if (isMcNode(item))
 				ret = UITypes.Nod;
 			else if (isMcSpt(item))
 				ret = UITypes.Spt
@@ -183,13 +187,11 @@ var checkItemType = function (item) {
 		else if (item.itemType === "bitmap") {
 			if (item.name.firstName() === UnexportFname)
 				ret = UITypes.Nod;
-			else if (item.name.firstName().endsWith(".fla"))
-			{
-				ret = UITypes.LK;
-			}
 			else
 				ret = UITypes.Img;
 		}
+		else if (item.itemType === "sound")
+			ret = UITypes.Musc;
 		else
 			ret = -1;
 		cache[item.name] = ret;
@@ -261,6 +263,21 @@ var getItemNewData = function (item, itemType, nameHash) {
 			// };
 			ret.timeline = transTimeLine(item.timeline, nameHash, false);
 		}
+		else if (itemType === UITypes.Musc) {
+			var suffix;
+			if (item.name.lastName().endsWith(".mp3"))
+				suffix = ".mp3"
+			else if (item.name.lastName().endsWith(".wav"))
+				suffix = ".wav"
+			else
+				alert("unsurport sound type of item:" + item.name);
+			var exportPath = folderPath + '/' + ret.name + suffix;
+			ret.path = FlashName + '/' + ret.name + suffix;
+			var data = {};
+			data.item = item;
+			data.exportPath = exportPath;
+			allMuscArr[allMuscArr.length] = data;
+		}
 		else if (itemType === UITypes.Nod) {
 			
 		}
@@ -270,7 +287,7 @@ var getItemNewData = function (item, itemType, nameHash) {
 			var otherFlaData = getOtherFlashData(ret.flashName);
 			var newName = otherFlaData.nameMap[itemName];
 			if (!newName)
-				alert(itemName + " not in " + ret.flashName + ".fla, please check and run export script");
+				alert(item.name + ":" + itemName + " not in " + ret.flashName + ".fla, please check and run export script");
 			ret.itemName = newName;
 		}
 		newDataCache[item.name] = ret;
@@ -419,6 +436,12 @@ var transTimeLine = function (timeline, nameHash, isScene) {
 			var oneElement = frame.elements[i];
 			ret.elements[ret.elements.length] = transElement(oneElement, nameHash, isScene);
 		};
+		if (frame.soundLibraryItem) {
+			ret.soundName = nameHash.getItemNewName(frame.soundLibraryItem);
+			ret.soundLoopMode = frame.soundLoopMode;
+			ret.soundSync = frame.soundSync;
+			ret.soundLoop = frame.soundLoop;
+		}
 		return ret;
 
 	}
@@ -491,11 +514,13 @@ var exportLibs = {};
 var scene = {};
 var fileInfo = {};
 var linkFiles = [];
+var musicFiles = [];
 
 exportData.library = exportLibs;
 exportData.fileInfo = fileInfo;
 exportData.scene = scene;
 exportData.linkFiles = linkFiles;
+exportData.musicFiles = musicFiles
 
 fileInfo.name = doc.name.fileName();
 fileInfo.width = doc.width;
@@ -521,6 +546,9 @@ for (var i = 0; i < length; i++) {
 				linkFilesCache[newData.flashName] = true;
 			}
 		}
+		if (newData.tp === UITypes.Musc) {
+			musicFiles[musicFiles.length] = newData.path
+		}
 	}
 };
 
@@ -534,19 +562,22 @@ exportLibs[defaultTextName] = {
     "tp": UITypes.Txt
 }
 
+if (!FLfile.exists(folderPath))
+	FLfile.createFolder(folderPath);
+else {
+	FLfile.remove(folderPath);
+	FLfile.createFolder(folderPath);
+}
+
 var jsonFile = folderPath + "/" +  FlashName + ".json";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write json file:" + jsonFile);
 var jsonStr = JSON.stringify(exportData, null, 4);
-if (!FLfile.exists(folderPath))
-	FLfile.createFolder(folderPath);
 FLfile.write(jsonFile, jsonStr);
 print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 
 var luaFile = folderPath + "/" +  FlashName + ".lua";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write lua file:" + luaFile);
 var luaStr = LUA.stringify(exportData);
-if (!FLfile.exists(folderPath))
-	FLfile.createFolder(folderPath);
 FLfile.write(luaFile, luaStr);
 print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 
@@ -554,6 +585,15 @@ print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 var nameMapFile = folderPath + "/" + FlashName + "NameMap.json";
 print(">>>>>>>>>>>>>>>>>>>>>>>>start write name map file:" + nameMapFile)
 FLfile.write(nameMapFile, JSON.stringify(originNameHash.origin2New, null, 4));
+print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+
+print(">>>>>>>>>>>>>>>>>>>>>>>>start export sound")
+for (var i = 0; i < allMuscArr.length; i++) {
+	var data = allMuscArr[i];
+	var soundFileURL = data.exportPath;
+	var libItem = data.item;
+	libItem.exportToFile(soundFileURL)
+};
 print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 
 print(">>>>>>>>>>>>>>>>>>>>>>>>start export sheet")
