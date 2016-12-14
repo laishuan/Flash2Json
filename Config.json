@@ -24,5 +24,7 @@
         "LK": "Link",
         "Spt": "FSprite",
         "Musc": "Music"
-    }
+    },
+    "splite": true,
+    "exportFileType": "lua"
 }
