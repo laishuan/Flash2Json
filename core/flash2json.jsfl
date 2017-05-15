@@ -331,12 +331,13 @@ if (typeof Flash2Json !== "object") {
 			attr.ga = element.colorGreenAmount;
 			attr.ba = element.colorBlueAmount;
 		}
-		attr.blendMode = element.blendMode;
 
 		var childAttr = {};
 		ret.childAttr = childAttr;
 		childAttr.x = -element.transformationPoint.x;
 		childAttr.y = element.transformationPoint.y;
+		if (element.blendMode === "add")
+			childAttr.blendMode = element.blendMode
 		if (element.name !== "")
 			childAttr.insName = element.name;
 		if (element.elementType === "instance") {
@@ -379,8 +380,20 @@ if (typeof Flash2Json !== "object") {
 			childAttr.g = "0x" + fillColor.slice(3,5);
 			childAttr.b = "0x" + fillColor.slice(5,7);
 			childAttr.alignment = element.getTextAttr("alignment");
-			childAttr.width = element.objectSpaceBounds.right;
-			childAttr.height = element.objectSpaceBounds.bottom;
+			childAttr.lineType = element.lineType;
+			childAttr.letterSpacing = element.getTextAttr("letterSpacing");
+			childAttr.lineSpacing = element.getTextAttr("lineSpacing");
+			var offsetX = 0
+			var offsetY = 0 //+ childAttr.size*0.25
+			// if (childAttr.alignment === "left") {
+			// 	// offsetX = -7
+			// 	// offsetY = 4
+			// }
+			childAttr.width = element.width;
+			childAttr.height = element.height;
+			childAttr.x = childAttr.x - element.objectSpaceBounds.left + offsetX;
+			childAttr.y = element.transformationPoint.y - element.objectSpaceBounds.top + offsetX;
+
 		}
 		else {
 			childAttr.tp = UITypes.Nod;
