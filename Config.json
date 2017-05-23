@@ -19,11 +19,16 @@
     "UITypes": {
         "Img": "Image",
         "Anm": "Anim",
-        "Nod": "Node",
         "Txt": "Text",
         "LK": "Link",
-        "Spt": "FSprite",
+        "Nod": "Node",
         "Musc": "Music"
+    },
+    "AnmSubTp" : {
+        "Gra": "Graphic",
+        "Spt": "FSprite",
+        "Mov": "Movieclip",
+        "Btn": "Button"
     },
     "splite": true,
     "exportFileType": "lua"

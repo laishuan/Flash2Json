@@ -9,6 +9,7 @@ if (typeof Flash2Json !== "object") {
 	var UnexportFname = CONFIG.UnexportFname;
 	var AutoNamePrefix = "auto";
 	var UITypes = CONFIG.UITypes;
+	var AnmSubTp = CONFIG.AnmSubTp;
 	var defaultNodeName = "__DefaultNode";
 	var defaultTextName = "__Text";
 	var spliteFolder = "library"
@@ -96,7 +97,7 @@ if (typeof Flash2Json !== "object") {
 		else
 			return false
 	}
-
+	var mcSptCache = {}
 	var isMcSpt = function (item) {
 		var isElmentSpt = function (element) {
 			var libraryItem = element.libraryItem
@@ -140,20 +141,33 @@ if (typeof Flash2Json !== "object") {
 			return isFrameSpt(frame)
 		}
 
-		if (item.timeline.frameCount === 1) {
-			var timeline = item.timeline;
-			for (var i = 0; i < timeline.layers.length; i++) {
-				var oneLayer = timeline.layers[i];
-				if (!isLayerSpt(oneLayer)) {
-					// print("layer.name:" + oneLayer.name + " is not spt")
-					return false
-				}
-			};
-			return true
+		var cacheValue = mcSptCache[item.name];
+		if (cacheValue !== undefined) {
+			return cacheValue;
 		}
 		else {
-			// print("more than 1 frame")
-			return false
+			var ret;
+			if (item.timeline.frameCount === 1) {
+				var timeline = item.timeline;
+				for (var i = 0; i < timeline.layers.length; i++) {
+					var oneLayer = timeline.layers[i];
+					if (!isLayerSpt(oneLayer)) {
+						// print("layer.name:" + oneLayer.name + " is not spt")
+						ret = false;
+						mcSptCache[item.name] = ret;
+						return ret;
+					}
+				};
+				ret = true;
+				mcSptCache[item.name] = ret;
+				return ret;
+			}
+			else {
+				// print("more than 1 frame")
+				ret = false;
+				mcSptCache[item.name] = ret;
+				return ret;
+			}
 		}
 	}
 	var cache = {};
@@ -175,8 +189,6 @@ if (typeof Flash2Json !== "object") {
 			else if (isTypeAnim(item.itemType))	{
 				if (isMcNode(item))
 					ret = UITypes.Nod;
-				else if (isMcSpt(item))
-					ret = UITypes.Spt
 				else
 					ret = UITypes.Anm;
 			}
@@ -233,32 +245,6 @@ if (typeof Flash2Json !== "object") {
 			else if (itemType === UITypes.Anm) {
 				ret.timeline = transTimeLine(item.timeline, nameHash, false);
 			}
-			else if (itemType === UITypes.Spt) {
-				// var timeline = item.timeline
-				// curTimeLine = timeline;
-				// curFrameIndex = 1;
-				// var retElements = [];
-				// ret.element = retElements;
-				// for (var i = timeline.layers.length-1; i >= 0; i--) {
-				// 	var oneLayer = timeline.layers[i];
-				// 	curLayer = oneLayer;
-				// 	var frame = oneLayer.frames[0]
-				// 	var elements = frame.elements;
-				// 	for (var j = 0; j < elements.length; j++) {
-				// 		var element = elements[j]
-				// 		var aftTrans = transElement(element, nameHash, false);
-				// 		var insName = aftTrans.childAttr.insName
-				// 		if (!insName || insName.length === 0) {
-				// 			if (frame.name && frame.length > 0) {
-				// 				aftTrans.childAttr.insName = frame.name + "__" + (j+1)
-				// 			}
-				// 		}
-				// 		aftTrans.layerType = oneLayer.layerType;
-				// 		retElements[retElements.length] = aftTrans
-				// 	};
-				// };
-				ret.timeline = transTimeLine(item.timeline, nameHash, false);
-			}
 			else if (itemType === UITypes.Musc) {
 				var suffix;
 				if (item.name.lastName().endsWith(".mp3"))
@@ -273,9 +259,6 @@ if (typeof Flash2Json !== "object") {
 				data.item = item;
 				data.exportPath = exportPath;
 				allMuscArr[allMuscArr.length] = data;
-			}
-			else if (itemType === UITypes.Nod) {
-				
 			}
 			else if (itemType === UITypes.LK) {
 				ret.flashName = item.name.firstName().fileName();
@@ -346,9 +329,40 @@ if (typeof Flash2Json !== "object") {
 			childAttr.itemName = itemName;
 			childAttr.tp = tp;
 			if (tp === UITypes.Anm ) {
-				if (element.loop) {
-					childAttr.loop = element.loop;
-					childAttr.firstFrame = element.firstFrame || 1;
+				if (element.instanceType === "symbol") {
+					if (element.symbolType === "button") {
+						childAttr.subTp = AnmSubTp.Btn;
+						var touchBounds = {}
+						childAttr.touchBounds = touchBounds;
+						var timeline = element.libraryItem.timeline;
+						var layers = timeline.layers;
+						for (var i = 0; i < layers.length; i++) {
+							var layer = layers[i];
+							if (layer.frameCount >= 4) {
+								var frame = layer.frames[3];
+								if (!frame.isEmpty) {
+									var boundsArr = []
+									childAttr.touchBounds["layer"+(i+1)] = boundsArr;
+									var elements = frame.elements;
+									for (var j = 0; j < elements.length; j++) {
+										var element = elements[j]
+										boundsArr[j] = element.objectSpaceBounds;
+									};
+								}
+							}
+						};
+					}
+					else if (isMcSpt(element.libraryItem)) {
+						childAttr.subTp = AnmSubTp.Spt;
+					}
+					else if (element.symbolType === "graphic") {
+						childAttr.loop = element.loop;
+						childAttr.firstFrame = element.firstFrame || 1;
+						childAttr.subTp = AnmSubTp.Gra;
+					}
+					else if (element.symbolType === "movie clip") {
+						childAttr.subTp = AnmSubTp.Mov;
+					}
 				}
 			}
 			else if (tp === UITypes.Img) {
@@ -358,9 +372,6 @@ if (typeof Flash2Json !== "object") {
 			else if (tp === UITypes.Nod) {
 				childAttr.tp = UITypes.Nod;
 				childAttr.itemName = defaultNodeName;
-			}
-			else if (tp === UITypes.Spt) {
-
 			}
 			else {
 				print("waring: unsurport elementType:" + element.elementType + " in timeline:" + curTimeLine.name + " layer:" + curLayer + " frameIndex:" + curFrameIndex)
@@ -503,8 +514,7 @@ if (typeof Flash2Json !== "object") {
 		else {
 			var itemType = checkItemType(item);
 			if (name.firstName() === ExportFname) {
-				if (itemType === UITypes.Anm
-					|| itemType === UITypes.Spt)
+				if (itemType === UITypes.Anm)
 					newName = name.lastName();
 				else
 					newName =  this.getNewNameByType(itemType);
@@ -566,7 +576,7 @@ if (typeof Flash2Json !== "object") {
 				var newData = getItemNewData(item, itemType, originNameHash, FlashName, allImgArr);
 				if (newData.tp !== UITypes.Nod) {
 					if (CONFIG.splite) {
-						if (newData.tp === UITypes.Anm || newData.tp === UITypes.Spt) {
+						if (newData.tp === UITypes.Anm) {
 							var path = spliteFolder + "/" + newData.name;
 							if (CONFIG.exportFileType === "lua")
 								exportLibs[newData.name] = spliteFolder + "." + newData.name;
