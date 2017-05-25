@@ -52,10 +52,10 @@ if (typeof Flash2Json !== "object") {
 				if (element.instanceType == "symbol"
 					&& (isTypeAnim(element.symbolType))) {
 					// print("name:" + libraryItem.name + " is movie clip")
-					if (!isMcNode(libraryItem)) {
+					// if (!isMcNode(libraryItem)) {
 						// print("name:" + libraryItem.name + " is not node")
 						return false
-					}
+					// }
 				}
 				else if (element.instanceType === "bitmap") {
 					if (libraryItem.name.firstName() !== UnexportFname) {
