@@ -319,6 +319,7 @@ if (typeof Flash2Json !== "object") {
 		ret.childAttr = childAttr;
 		childAttr.x = -element.transformationPoint.x;
 		childAttr.y = element.transformationPoint.y;
+		childAttr.bound = element.objectSpaceBounds;
 		if (element.blendMode === "add")
 			childAttr.blendMode = element.blendMode
 		if (element.name !== "")
@@ -332,25 +333,6 @@ if (typeof Flash2Json !== "object") {
 				if (element.instanceType === "symbol") {
 					if (element.symbolType === "button") {
 						childAttr.subTp = AnmSubTp.Btn;
-						var touchBounds = {}
-						childAttr.touchBounds = touchBounds;
-						var timeline = element.libraryItem.timeline;
-						var layers = timeline.layers;
-						for (var i = 0; i < layers.length; i++) {
-							var layer = layers[i];
-							if (layer.frameCount >= 4) {
-								var frame = layer.frames[3];
-								if (!frame.isEmpty) {
-									var boundsArr = []
-									childAttr.touchBounds["layer"+(i+1)] = boundsArr;
-									var elements = frame.elements;
-									for (var j = 0; j < elements.length; j++) {
-										var element = elements[j]
-										boundsArr[j] = element.objectSpaceBounds;
-									};
-								}
-							}
-						};
 					}
 					else if (isMcSpt(element.libraryItem)) {
 						childAttr.subTp = AnmSubTp.Spt;
