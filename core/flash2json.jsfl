@@ -13,7 +13,13 @@ if (typeof Flash2Json !== "object") {
 	var defaultNodeName = "__DefaultNode";
 	var defaultTextName = "__Text";
 	var spliteFolder = "library"
-
+	var exportScript = CONFIG.exportScript
+	var doc = fl.getDocumentDOM();
+	var library = doc.library;
+	var FlashName = doc.path.fileName();
+	var resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
+	var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
+	var folderPath = exportScript ? scriptFolderPath : resFolderPath
 	var isTypeAnim = function  (itemType) {
 		return (itemType === "movie clip" || itemType === "graphic" || itemType === "button")
 	}
@@ -212,11 +218,11 @@ if (typeof Flash2Json !== "object") {
 		var data = otherFlashData[flashName];
 		if (!data) {
 			data = {};
-			var path = CONFIG.globalFlaFolder + "/" + flashName + "/" + flashName + "NameMap.json";
+			var path = CONFIG.flaFolder + "/" + flashName + "/" + flashName + "NameMap.json";
 			if (!FLfile.exists(path))
 				alert(flashName + ".fla need run export script");
 			data.nameMap = JSON.parse(FLfile.read(path));
-		// 	path = CONFIG.globalFlaFolder + "/" + flashName + "/" + flashName + ".json";
+		// 	path = CONFIG.flaFolder + "/" + flashName + "/" + flashName + ".json";
 		// 	if (!FLfile.exists(path))
 		// 		alert(flashName + ".fla need run export script");
 		// 	data.json = JSON.parse(FLfile.read(path));
@@ -228,12 +234,14 @@ if (typeof Flash2Json !== "object") {
 	var curTimeLine;
 	var curLayer;
 	var curFrameIndex;
-	var getItemNewData = function (item, itemType, nameHash, FlashName, allImgArr) {
+	var getItemNewData = function (item, itemType, nameHash, FlashName, allImgArr, allMuscArr) {
 		var ret = newDataCache[item.name];
 		if (!ret) {	
 			ret = {};
 			ret.name = nameHash.getItemNewName(item);
 			ret.tp = itemType;
+			if (item.linkageClassName) 
+				ret.script = item.linkageClassName
 			if (itemType === UITypes.Img) {
 				var data = {};
 				ret.path = ret.name + '_' + FlashName + ".png";
@@ -253,7 +261,7 @@ if (typeof Flash2Json !== "object") {
 					suffix = ".wav"
 				else
 					alert("unsurport sound type of item:" + item.name);
-				var exportPath = folderPath + '/' + ret.name + suffix;
+				var exportPath = resFolderPath + '/' + ret.name + suffix;
 				ret.path = FlashName + '/' + ret.name + suffix;
 				var data = {};
 				data.item = item;
@@ -515,15 +523,13 @@ if (typeof Flash2Json !== "object") {
 
 	Flash2Json.export = function (argument) {
 		fl.outputPanel.clear();
-		var doc = fl.getDocumentDOM();
-		var library = doc.library;
-		var FlashName = doc.path.fileName();
-		var folderPath =  CONFIG.globalFlaFolder + '/' + FlashName;
+		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/templet_lua')
 		var sheetExporter = new SpriteSheetExporter;
 		sheetExporter.beginExport();
 		var allImgArr = [];
 		var allMuscArr = [];
-
+		var allScriptArr = []
+		allScriptArr[allScriptArr.length] = FlashName
 		var originNameHash = new OriginNameHash();
 		var exportData = {};
 
@@ -555,7 +561,10 @@ if (typeof Flash2Json !== "object") {
 			var item = library.items[i];
 			var itemType = checkItemType(item);
 			if (itemType !== -1) {
-				var newData = getItemNewData(item, itemType, originNameHash, FlashName, allImgArr);
+				var newData = getItemNewData(item, itemType, originNameHash, FlashName, allImgArr, allMuscArr);
+				if (newData.script) {
+					allScriptArr[allScriptArr.length] = newData.script
+				}
 				if (newData.tp !== UITypes.Nod) {
 					if (CONFIG.splite) {
 						if (newData.tp === UITypes.Anm) {
@@ -594,27 +603,51 @@ if (typeof Flash2Json !== "object") {
 		    "tp": UITypes.Txt
 		}
 
-		if (!FLfile.exists(folderPath))
-			FLfile.createFolder(folderPath);
+		if (!FLfile.exists(resFolderPath))
+			FLfile.createFolder(resFolderPath);
 		else {
-			FLfile.remove(folderPath);
-			FLfile.createFolder(folderPath);
+			FLfile.remove(resFolderPath);
+			FLfile.createFolder(resFolderPath);
 		}
 
+		print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>start write script file")
+		if (exportScript && CONFIG.exportFileType === "lua") {
+			if (!FLfile.exists(scriptFolderPath))
+				FLfile.createFolder(scriptFolderPath);
+			
+			for (var i = 0; i < allScriptArr.length; i++) {
+				var scriptName = allScriptArr[i]
+				var scriptPath = scriptFolderPath + '/' + scriptName + ".lua"
+				if (!FLfile.exists(scriptPath)) {
+					var fileContent = templetContent.replace(/__CLASS_NAME/g, scriptName)
+					FLfile.write(scriptPath, fileContent)
+				}
+				// else
+				// 	print(">>" + scriptName + " exists")
+			};
+		
+		}
+		print(">>>>>>>>>>>>>>>>>>>>>>>>OK")
 		if (CONFIG.splite) {
-			var libPath = folderPath + "/" + spliteFolder
+			var libPath
+			// if (CONFIG.exportFileType === "lua") {
+			// 	libPath = scriptFolderPath + "/" + spliteFolder
+			// }
+			// else {
+				libPath = resFolderPath + "/" + spliteFolder
+			// }
 			if (!FLfile.exists(libPath))
 				FLfile.createFolder(libPath);
 		}
 
 		if (CONFIG.exportFileType === "json") {
-			var jsonFile = folderPath + "/" +  FlashName + ".json";
+			var jsonFile = resFolderPath + "/" +  "FlashInfo" + ".json";
 			print(">>>>>>>>>>>>>>>>>>>>>>>>start write json file:" + jsonFile);
 			var jsonStr = JSON.stringify(exportData, null, 4);
 			FLfile.write(jsonFile, jsonStr);
 			if (CONFIG.splite) {
 				for (var path in spliteFiles) {
-					var jsonFile = folderPath + "/" + path + ".json";
+					var jsonFile = resFolderPath + "/" + path + ".json";
 					var data = spliteFiles[path];
 					var jsonStr = JSON.stringify(data, null, 4);
 					FLfile.write(jsonFile, jsonStr);
@@ -624,14 +657,14 @@ if (typeof Flash2Json !== "object") {
 		}
 
 		if (CONFIG.exportFileType === "lua") {
-			var luaFile = folderPath + "/" +  FlashName + ".lua";
+			var luaFile = resFolderPath + "/" +  "FlashInfo" + ".lua";
 			print(">>>>>>>>>>>>>>>>>>>>>>>>start write lua file:" + luaFile);
 			var luaStr = LUA.stringify(exportData);
 			FLfile.write(luaFile, luaStr);
 
 			if (CONFIG.splite) {
 				for (var path in spliteFiles) {
-					var luaFile = folderPath + "/" + path + ".lua";
+					var luaFile = resFolderPath + "/" + path + ".lua";
 					var data = spliteFiles[path];
 					var luaStr = LUA.stringify(data);
 					FLfile.write(luaFile, luaStr);
@@ -642,7 +675,7 @@ if (typeof Flash2Json !== "object") {
 		}
 
 
-		var nameMapFile = folderPath + "/" + FlashName + "NameMap.json";
+		var nameMapFile = resFolderPath + "/" + FlashName + "NameMap.json";
 		print(">>>>>>>>>>>>>>>>>>>>>>>>start write name map file:" + nameMapFile)
 		FLfile.write(nameMapFile, JSON.stringify(originNameHash.origin2New, null, 4));
 		print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
@@ -662,7 +695,7 @@ if (typeof Flash2Json !== "object") {
 			data.item.name = data.newName;
 			sheetExporter.addBitmap(data.item);
 		};
-		var sheetPath = folderPath + '/' + FlashName + "image";
+		var sheetPath = resFolderPath + '/' + FlashName + "image";
 		var sheetConfig = CONFIG.sheetConfig;
 		for (var k in sheetConfig) {
 			sheetExporter[k] = sheetConfig[k];

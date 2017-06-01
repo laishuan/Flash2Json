@@ -1,6 +1,7 @@
 {
     "flaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
     "globalFlaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
+    "scriptFolder": "file:///D|/code/cocos/flash/test/src/app/flashScript",
     "ExportFname": "_EPT",
     "UnexportFname": "_UEPT",
     "sheetConfig": {
@@ -31,5 +32,6 @@
         "Btn": "Button"
     },
     "splite": true,
-    "exportFileType": "lua"
+    "exportFileType": "lua",
+    "exportScript": true
 }
