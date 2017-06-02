@@ -7,9 +7,8 @@ function __CLASS_NAME:ctor(FView)
 	--__Content_Ctor
 end
 
-function __CLASS_NAME:removeSelfAndClean( ... )
-	__CLASS_NAME.super.removeSelfAndClean(...)
-	--__Content_removeSelfAndClean
+function __CLASS_NAME:clear(...)
+	__CLASS_NAME.super.clear(...)
 end
 
 return __CLASS_NAME

@@ -20,6 +20,19 @@ if (typeof Flash2Json !== "object") {
 	var resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
 	var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
 	var folderPath = exportScript ? scriptFolderPath : resFolderPath
+
+	var allImgArr = [];
+	var allMuscArr = [];
+	var allScriptData = {}
+
+	var addToScriptData = function  (key, viewTp, script) {
+		var data = {}
+		allScriptData[key] = data
+		data.viewTp = viewTp
+		data.script = script
+		data.allIns = {}
+	}
+
 	var isTypeAnim = function  (itemType) {
 		return (itemType === "movie clip" || itemType === "graphic" || itemType === "button")
 	}
@@ -28,7 +41,7 @@ if (typeof Flash2Json !== "object") {
 		var absF = function (num) {
 			return num > 0 ? num : -num;
 		}
-		if (absF(f1 -f2) < 0.001)
+		if (absF(f1 -f2) < 0.01)
 			return true;
 		return false;
 	}
@@ -234,14 +247,13 @@ if (typeof Flash2Json !== "object") {
 	var curTimeLine;
 	var curLayer;
 	var curFrameIndex;
-	var getItemNewData = function (item, itemType, nameHash, FlashName, allImgArr, allMuscArr) {
+	var getItemNewData = function (item, itemType, nameHash) {
 		var ret = newDataCache[item.name];
 		if (!ret) {	
 			ret = {};
 			ret.name = nameHash.getItemNewName(item);
 			ret.tp = itemType;
-			if (item.linkageClassName) 
-				ret.script = item.linkageClassName
+
 			if (itemType === UITypes.Img) {
 				var data = {};
 				ret.path = ret.name + '_' + FlashName + ".png";
@@ -251,7 +263,11 @@ if (typeof Flash2Json !== "object") {
 				allImgArr[allImgArr.length] = data;
 			}
 			else if (itemType === UITypes.Anm) {
-				ret.timeline = transTimeLine(item.timeline, nameHash, false);
+				ret.timeline = transTimeLine(item.timeline, nameHash, ret.name);
+				if (item.linkageClassName)  {
+					ret.script = item.linkageClassName
+					addToScriptData(ret.name, ret.tp, ret.script)
+				}
 			}
 			else if (itemType === UITypes.Musc) {
 				var suffix;
@@ -282,16 +298,16 @@ if (typeof Flash2Json !== "object") {
 		return ret;
 	}
 
-	var transElement = function (element, nameHash, isScene, docHeight) {
+	var transElement = function (element, nameHash, ownerName) {
 		var ret = {};
-
+		var isScene = (ownerName === "scene")
 		var attr = {};
 		ret.attr = attr;
 		attr.x = element.transformX;
 		if (!isScene)
 			attr.y = -element.transformY;
 		else
-			attr.y = -element.transformY + docHeight
+			attr.y = -element.transformY + doc.height
 		if (!floatEqual(element.scaleX, 1))
 			attr.scaleX = element.scaleX;
 		if (!floatEqual(element.scaleY, 1))
@@ -330,8 +346,7 @@ if (typeof Flash2Json !== "object") {
 		childAttr.bound = element.objectSpaceBounds;
 		if (element.blendMode === "add")
 			childAttr.blendMode = element.blendMode
-		if (element.name !== "")
-			childAttr.insName = element.name;
+
 		if (element.elementType === "instance") {
 			var tp = checkItemType(element.libraryItem);
 			var itemName = nameHash.getItemNewName(element.libraryItem);
@@ -400,11 +415,26 @@ if (typeof Flash2Json !== "object") {
 			childAttr.tp = UITypes.Nod;
 			childAttr.itemName = defaultNodeName;
 		}
+
+		if (element.name !== "") {
+			childAttr.insName = element.name;
+			var scriptData = allScriptData[ownerName]
+			if (scriptData !== undefined) {
+				if (childAttr.subTp !== undefined) {
+					scriptData.allIns[childAttr.insName] = childAttr.subTp
+				}
+				else
+					scriptData.allIns[childAttr.insName] = childAttr.tp
+			}
+		}
 		return ret;
 	}
 
-	var transTimeLine = function (timeline, nameHash, isScene, docHeight) {
+	var transTimeLine = function (timeline, nameHash, ownerName) {
 		curTimeLine = timeline;
+		var isScene = (ownerName === "scene")
+		var scriptData = allScriptData[ownerName]
+
 		var trasLayer = function (layer) {
 			var ret = {};
 			ret.layerType = layer.layerType;
@@ -449,7 +479,7 @@ if (typeof Flash2Json !== "object") {
 			ret.elements = [];
 			for (var i = 0; i < frame.elements.length; i++) {
 				var oneElement = frame.elements[i];
-				ret.elements[ret.elements.length] = transElement(oneElement, nameHash, isScene, docHeight);
+				ret.elements[ret.elements.length] = transElement(oneElement, nameHash, ownerName);
 			};
 			if (frame.soundLibraryItem) {
 				ret.soundName = nameHash.getItemNewName(frame.soundLibraryItem);
@@ -457,6 +487,20 @@ if (typeof Flash2Json !== "object") {
 				ret.soundSync = frame.soundSync;
 				ret.soundLoop = frame.soundLoop;
 			}
+
+			if (ret.name !== undefined && !ret.isEmpty && scriptData !== undefined) {
+				for (var i = 0; i < ret.elements.length; i++) {
+					var oneElement = ret.elements[i]
+					if (oneElement.childAttr.insName === undefined) {
+						var insName	= ret.name + "__" + (i + 1)
+						if (oneElement.childAttr.subTp !== undefined)
+							scriptData.allIns[insName] = oneElement.childAttr.subTp
+						else
+							scriptData.allIns[insName] = oneElement.childAttr.tp
+					}
+				};
+			}
+
 			return ret;
 
 		}
@@ -470,7 +514,6 @@ if (typeof Flash2Json !== "object") {
 			curLayer = oneLayer.name;
 			ret.layers[ret.layers.length] = trasLayer(oneLayer);
 		};
-
 
 		return ret;
 	}
@@ -526,10 +569,7 @@ if (typeof Flash2Json !== "object") {
 		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/templet_lua')
 		var sheetExporter = new SpriteSheetExporter;
 		sheetExporter.beginExport();
-		var allImgArr = [];
-		var allMuscArr = [];
-		var allScriptArr = []
-		allScriptArr[allScriptArr.length] = FlashName
+
 		var originNameHash = new OriginNameHash();
 		var exportData = {};
 
@@ -551,9 +591,11 @@ if (typeof Flash2Json !== "object") {
 		fileInfo.height = doc.height;
 		fileInfo.frameRate = doc.frameRate;
 
-		scene.timeline = transTimeLine(doc.timelines[0], originNameHash, true, doc.height);
+		addToScriptData("scene", UITypes.Anm, FlashName)
+		scene.timeline = transTimeLine(doc.timelines[0], originNameHash, "scene");
 		scene.tp = UITypes.Anm;
 		scene.name = "scene";
+
 
 		var length = library.items.length
 		var linkFilesCache = {};
@@ -561,10 +603,7 @@ if (typeof Flash2Json !== "object") {
 			var item = library.items[i];
 			var itemType = checkItemType(item);
 			if (itemType !== -1) {
-				var newData = getItemNewData(item, itemType, originNameHash, FlashName, allImgArr, allMuscArr);
-				if (newData.script) {
-					allScriptArr[allScriptArr.length] = newData.script
-				}
+				var newData = getItemNewData(item, itemType, originNameHash);
 				if (newData.tp !== UITypes.Nod) {
 					if (CONFIG.splite) {
 						if (newData.tp === UITypes.Anm) {
@@ -614,18 +653,24 @@ if (typeof Flash2Json !== "object") {
 		if (exportScript && CONFIG.exportFileType === "lua") {
 			if (!FLfile.exists(scriptFolderPath))
 				FLfile.createFolder(scriptFolderPath);
-			
-			for (var i = 0; i < allScriptArr.length; i++) {
-				var scriptName = allScriptArr[i]
+
+			for (var key in allScriptData) {
+				var scriptData = allScriptData[key]
+				var scriptName = scriptData.script
 				var scriptPath = scriptFolderPath + '/' + scriptName + ".lua"
 				if (!FLfile.exists(scriptPath)) {
 					var fileContent = templetContent.replace(/__CLASS_NAME/g, scriptName)
+
+					var allInsBindStr = "-- All Ins Bind \n"
+					for (var insName in scriptData.allIns) {
+						var tp = scriptData.allIns[insName]
+						var str = "\tself." + insName + " = self:getChildByName(\"" + insName + "\") -- type is " + tp + "\n"
+						allInsBindStr = allInsBindStr + str
+					}
+					fileContent = fileContent.replace(/--__Content_Ctor/, allInsBindStr)
 					FLfile.write(scriptPath, fileContent)
 				}
-				// else
-				// 	print(">>" + scriptName + " exists")
-			};
-		
+			}
 		}
 		print(">>>>>>>>>>>>>>>>>>>>>>>>OK")
 		if (CONFIG.splite) {
