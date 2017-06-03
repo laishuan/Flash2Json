@@ -263,11 +263,11 @@ if (typeof Flash2Json !== "object") {
 				allImgArr[allImgArr.length] = data;
 			}
 			else if (itemType === UITypes.Anm) {
-				ret.timeline = transTimeLine(item.timeline, nameHash, ret.name);
 				if (item.linkageClassName)  {
 					ret.script = item.linkageClassName
 					addToScriptData(ret.name, ret.tp, ret.script)
 				}
+				ret.timeline = transTimeLine(item.timeline, nameHash, ret.name);
 			}
 			else if (itemType === UITypes.Musc) {
 				var suffix;
@@ -664,7 +664,7 @@ if (typeof Flash2Json !== "object") {
 					var allInsBindStr = "-- All Ins Bind \n"
 					for (var insName in scriptData.allIns) {
 						var tp = scriptData.allIns[insName]
-						var str = "\tself." + insName + " = self:getChildByName(\"" + insName + "\") -- type is " + tp + "\n"
+						var str = "\tself." + insName + " = fsprit:getChildByName(\"" + insName + "\") -- type is " + tp + "\n"
 						allInsBindStr = allInsBindStr + str
 					}
 					fileContent = fileContent.replace(/--__Content_Ctor/, allInsBindStr)
