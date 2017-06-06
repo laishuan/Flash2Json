@@ -595,6 +595,7 @@ if (typeof Flash2Json !== "object") {
 		scene.timeline = transTimeLine(doc.timelines[0], originNameHash, "scene");
 		scene.tp = UITypes.Anm;
 		scene.name = "scene";
+		scene.script = FlashName
 
 
 		var length = library.items.length
