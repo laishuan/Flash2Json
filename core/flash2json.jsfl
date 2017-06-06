@@ -357,7 +357,7 @@ if (typeof Flash2Json !== "object") {
 					if (element.symbolType === "button") {
 						childAttr.subTp = AnmSubTp.Btn;
 					}
-					else if (isMcSpt(element.libraryItem)) {
+					else if (/*isMcSpt(element.libraryItem)*/element.libraryItem.timeline.frameCount === 1) {
 						childAttr.subTp = AnmSubTp.Spt;
 					}
 					else if (element.symbolType === "graphic") {
@@ -664,7 +664,7 @@ if (typeof Flash2Json !== "object") {
 					var allInsBindStr = "-- All Ins Bind \n"
 					for (var insName in scriptData.allIns) {
 						var tp = scriptData.allIns[insName]
-						var str = "\tself." + insName + " = fsprit:getChildByName(\"" + insName + "\") -- type is " + tp + "\n"
+						var str = "\tself." + insName + " = self.fsprit:getChildByName(\"" + insName + "\") -- " + tp + "\n"
 						allInsBindStr = allInsBindStr + str
 					}
 					fileContent = fileContent.replace(/--__Content_Ctor/, allInsBindStr)

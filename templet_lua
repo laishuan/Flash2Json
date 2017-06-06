@@ -2,13 +2,23 @@
 
 local __CLASS_NAME = class("__CLASS_NAME",cc.load("flash").BaseFSController)
 
-function __CLASS_NAME:ctor(fsprit, subTp)
-	__CLASS_NAME.super.ctor(self, fsprit, subTp)
+function __CLASS_NAME:onCreate()
+end
+
+function __CLASS_NAME:bindAllIns()
 	--__Content_Ctor
 end
 
-function __CLASS_NAME:cleanup(...)
-	__CLASS_NAME.super.cleanup(...)
+function __CLASS_NAME:onSetData(data)
+end
+
+function __CLASS_NAME:onEnter(from)
+end
+
+function __CLASS_NAME:onExit()
+end
+
+function __CLASS_NAME:onCleanup()
 end
 
 return __CLASS_NAME
