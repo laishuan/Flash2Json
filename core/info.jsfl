@@ -35,6 +35,26 @@ if (typeof INFO !== "object") {
 				ret.t = JsonDealTypes.Skip;
 				return ret;
 			}
+			else if (key === "frames") {
+				if (value.length > 0) {
+					var newArr = []
+					var bzArr = {}
+					ret.v = newArr
+					for (var i = 0; i < value.length; i++) {
+						var oneFrameData = value[i]
+						if (oneFrameData.startFrame === i) {
+							newArr[newArr.length] = oneFrameData
+							bzArr[i] = oneFrameData.getCustomEase("all")
+						}
+					};
+					// newArr[newArr.length] = bzArr
+				}
+				else {
+					ret.v = value
+				}
+				ret.t = JsonDealTypes.Deal
+				return ret
+			}
 			else {
 				ret.v = value;
 				ret.t = JsonDealTypes.Deal;
