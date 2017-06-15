@@ -475,6 +475,35 @@ if (typeof Flash2Json !== "object") {
 				ret.rotateType = frame.motionTweenRotate;
 				ret.rotateTimes = frame.motionTweenRotateTimes;
 			}
+			var bzpArr = frame.getCustomEase("all")
+			if (bzpArr.length > 0) {
+				var bzpGroupArr = []
+				var pointCount = 0
+				var index = 0
+				var groupCount = 0
+				while (index < bzpArr.length) {
+					if (pointCount > 3) {
+						groupCount = groupCount + 1
+						pointCount = 0
+						index = index - 1
+					}
+
+					var curGroup = bzpGroupArr[groupCount]
+					if (!curGroup) {
+						curGroup = []
+						bzpGroupArr[groupCount] = curGroup
+					}
+
+					var pointData = {}
+					curGroup[pointCount] = pointData
+					pointData.x = bzpArr[index].x
+					pointData.y = bzpArr[index].y 
+
+					pointCount = pointCount + 1
+					index = index + 1
+				}
+				ret.bzpGroupArr = bzpGroupArr
+			}
 			ret.isEmpty = frame.isEmpty;
 			ret.elements = [];
 			for (var i = 0; i < frame.elements.length; i++) {

@@ -47,7 +47,7 @@ if (typeof INFO !== "object") {
 							bzArr[i] = oneFrameData.getCustomEase("all")
 						}
 					};
-					// newArr[newArr.length] = bzArr
+					newArr[newArr.length] = bzArr
 				}
 				else {
 					ret.v = value
