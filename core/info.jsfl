@@ -1,4 +1,6 @@
 
+fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
+
 if (typeof INFO !== "object") {
     INFO = {};
 }
@@ -47,7 +49,9 @@ if (typeof INFO !== "object") {
 							bzArr[i] = oneFrameData.getCustomEase("all")
 						}
 					};
-					newArr[newArr.length] = bzArr
+					if (CONFIG.showEaSe) {
+						newArr[newArr.length] = bzArr
+					}
 				}
 				else {
 					ret.v = value

@@ -33,5 +33,6 @@
     },
     "splite": true,
     "exportFileType": "lua",
-    "exportScript": true
+    "exportScript": true,
+    "showEaSe": true,
 }
