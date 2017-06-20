@@ -27,13 +27,23 @@ if (typeof INFO !== "object") {
 				ret.t = JsonDealTypes.Deal;
 				return ret;
 			}
+			else if (value.elementType === "shape") {
+				ret.v = value;
+				ret.t = JsonDealTypes.Deal;
+				// var data = []
+				// for (var i = 0; i < value.numCubicSegments; i++) {
+				// 	data[data.length] = value.getCubicSegmentPoints(i)
+				// };
+				// ret.v = data
+				return ret;
+			}
 			else if (key === "brightness" 
 					|| key === "tintColor" 
 					|| key === "tintPercent"
 					|| key === "tintPercent"
 					|| key === "actionScript"
 					|| key === "packagePaths"
-					|| value.elementType == "shape") {	
+					/*|| value.elementType == "shape"*/) {	
 				ret.t = JsonDealTypes.Skip;
 				return ret;
 			}
