@@ -8,14 +8,14 @@
 	}
 
 	String.prototype.lkItemName = function () {
-		var index = this.lastIndexOf('\\');
-		index = (index == -1 ? this.lastIndexOf('/') : index);
+		var index = this.indexOf('\\');
+		index = (index == -1 ? this.indexOf('/') : index);
 		return (index != -1 ? this.slice(index+1) : -1);
 	}
 
 	String.prototype.firstName = function () {
-		var indexS = this.lastIndexOf('\\');
-		indexS = (indexS == -1 ? this.lastIndexOf('/') : indexS);
+		var indexS = this.indexOf('\\');
+		indexS = (indexS == -1 ? this.indexOf('/') : indexS);
 		if (indexS !== -1) {
 			return this.slice(0, indexS);
 		}
