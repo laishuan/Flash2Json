@@ -43,6 +43,7 @@ if (typeof INFO !== "object") {
 					|| key === "tintPercent"
 					|| key === "actionScript"
 					|| key === "packagePaths"
+					|| key === "lineType"
 					/*|| value.elementType == "shape"*/) {	
 				ret.t = JsonDealTypes.Skip;
 				return ret;
