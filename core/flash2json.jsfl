@@ -396,7 +396,7 @@ if (typeof Flash2Json !== "object") {
 			childAttr.g = "0x" + fillColor.slice(3,5);
 			childAttr.b = "0x" + fillColor.slice(5,7);
 			childAttr.alignment = element.getTextAttr("alignment");
-			childAttr.lineType = element.lineType;
+			// childAttr.lineType = element.lineType;
 			childAttr.letterSpacing = element.getTextAttr("letterSpacing");
 			childAttr.lineSpacing = element.getTextAttr("lineSpacing");
 			var offsetX = 0
