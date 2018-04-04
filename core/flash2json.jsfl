@@ -596,8 +596,12 @@ if (typeof Flash2Json !== "object") {
 	Flash2Json.export = function (argument) {
 		fl.outputPanel.clear();
 		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/templet_lua')
-		var sheetExporter = new SpriteSheetExporter;
-		sheetExporter.beginExport();
+		var sheetExporter
+		if (CONFIG.exportSheet)
+		{
+			sheetExporter = new SpriteSheetExporter;
+			sheetExporter.beginExport();
+		}
 
 		var originNameHash = new OriginNameHash();
 		var exportData = {};
@@ -764,33 +768,47 @@ if (typeof Flash2Json !== "object") {
 		};
 		print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 
-		print(">>>>>>>>>>>>>>>>>>>>>>>>start export sheet")
-		for (var i = 0; i < allImgArr.length; i++) {
-			var data = allImgArr[i];
-			data.item.name = data.newName;
-			sheetExporter.addBitmap(data.item);
-		};
-		var sheetPath = resFolderPath + '/' + FlashName + "image";
-		var sheetConfig = CONFIG.sheetConfig;
-		for (var k in sheetConfig) {
-			sheetExporter[k] = sheetConfig[k];
-		}
+		if (CONFIG.exportSheet) {
+			print(">>>>>>>>>>>>>>>>>>>>>>>>start export sheet")
+			for (var i = 0; i < allImgArr.length; i++) {
+				var data = allImgArr[i];
+				data.item.name = data.newName;
+				sheetExporter.addBitmap(data.item);
+			};
+			var sheetPath = resFolderPath + '/' + FlashName + "image";
+			var sheetConfig = CONFIG.sheetConfig;
+			for (var k in sheetConfig) {
+				sheetExporter[k] = sheetConfig[k];
+			}
 
-		if (sheetExporter.sheetWidth > sheetExporter.maxSheetWidth
-			|| sheetExporter.sheetHeight > sheetExporter.maxSheetHeight)
-			print("error: sheet more than " + sheetExporter.maxSheetWidth + "*" + sheetExporter.maxSheetHeight);
+			if (sheetExporter.sheetWidth > sheetExporter.maxSheetWidth
+				|| sheetExporter.sheetHeight > sheetExporter.maxSheetHeight)
+				print("error: sheet more than " + sheetExporter.maxSheetWidth + "*" + sheetExporter.maxSheetHeight);
+			else {
+				var imageFormat = {};
+				imageFormat.format = "png";
+				imageFormat.bitDepth = 32;
+				imageFormat.backgroundColor = "#00000000";
+				sheetExporter.exportSpriteSheet(sheetPath, imageFormat);
+			}
+
+			for (var i = 0; i < allImgArr.length; i++) {
+				var data = allImgArr[i];
+				data.item.name = data.originName.lastName();
+			};
+			print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
+		}
 		else {
-			var imageFormat = {};
-			imageFormat.format = "png";
-			imageFormat.bitDepth = 32;
-			imageFormat.backgroundColor = "#00000000";
-			sheetExporter.exportSpriteSheet(sheetPath, imageFormat);
+			print(">>>>>>>>>>>>>>>>>>>>>>>>start export png")
+			var path = resFolderPath + '/' + FlashName + "image"
+			if (!FLfile.exists(path))
+				FLfile.createFolder(path);
+			for (var i = 0; i < allImgArr.length; i++) {
+				var data = allImgArr[i];
+				path = resFolderPath + '/' + FlashName + "image/" + data.newName
+				data.item.exportToFile(path)
+			};
+			print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 		}
-
-		for (var i = 0; i < allImgArr.length; i++) {
-			var data = allImgArr[i];
-			data.item.name = data.originName.lastName();
-		};
-		print(">>>>>>>>>>>>>>>>>>>>>>>>OK");
 	}
 }())

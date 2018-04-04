@@ -1,23 +1,24 @@
 function is (value) {
     var str = Object.prototype.toString.call(value);
-    switch (str) {
-        case　"[object Number]":
-            return "number";
-        case "[object String]":
-            return "string";
-        case "[object Boolean]":
-            return "boolean";
-        case "[object Function]":
-            return "function";
-        case "[object Array]":
-            return "array";
-        case "[object Window]":
-        case "[object Tools]":
-        case "[object SwfPanel]":
-            return "null";
-        default:
-            return "object";
-    }
+    var ret
+    if (str === "[object Number]")
+        ret = "number"
+    else if (str === "[object String]")
+        ret = "string"
+    else if (str === "[object Boolean]")
+        ret = "boolean"
+    else if (str === "[object Function]")
+        ret = "function"
+    else if (str === "[object Array]")
+        ret = "array"
+    else if (str === "[object Window]"
+            || str === "[object Tools]"
+            || str === "[object SwfPanel]")
+        ret = "null"
+    else
+        ret = "object"
+    
+    return ret
 }
 
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/stringE.jsfl');
