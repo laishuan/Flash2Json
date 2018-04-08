@@ -16,7 +16,6 @@ if (typeof INFO !== "object") {
 
 		var ref = function  (key, value) {
 			var ret = {};
-
 			if (key === "libraryItem") {
 				ret.v = value.name;
 				ret.t = JsonDealTypes.Deal;
@@ -44,6 +43,7 @@ if (typeof INFO !== "object") {
 					|| key === "actionScript"
 					|| key === "packagePaths"
 					|| key === "lineType"
+					|| key === "listIndex"
 					/*|| value.elementType == "shape"*/) {	
 				ret.t = JsonDealTypes.Skip;
 				return ret;
