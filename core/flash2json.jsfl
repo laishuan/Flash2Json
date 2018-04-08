@@ -352,7 +352,7 @@ if (typeof Flash2Json !== "object") {
 			var itemName = nameHash.getItemNewName(element.libraryItem);
 			childAttr.itemName = itemName;
 			childAttr.tp = tp;
-			if (tp === UITypes.Anm ) {
+			if (tp === UITypes.Anm || tp === UITypes.LK ) {
 				if (element.instanceType === "symbol") {
 					if (element.symbolType === "button") {
 						childAttr.subTp = AnmSubTp.Btn;
@@ -371,8 +371,6 @@ if (typeof Flash2Json !== "object") {
 				}
 			}
 			else if (tp === UITypes.Img) {
-			}
-			else if (tp === UITypes.LK) {
 			}
 			else if (tp === UITypes.Nod) {
 				childAttr.tp = UITypes.Nod;
