@@ -2,139 +2,63 @@ if (typeof PreTrans !== "object") {
     PreTrans = {};
 }
 (function (argument) {
-	fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/stringE.jsfl');
+	fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
 	var doc, library, items;
-
+	var allMaskItem = {}
 	var locAllLayer = function (timeline) {
 		timeline.setLayerProperty('locked', true, 'all');
 	}
 
 	var tranOneTimeLine = function (timeline, itemName) {
-		fl.trace("tranOneTimeLine:" + itemName)
 		var layers = timeline.layers;
 		locAllLayer(timeline);
 		for (var j = 0; j < layers.length; j++) {
 			var layer = layers[j];
-			fl.trace("check layer:" + layer.name)
+			// fl.trace("check layer:" + layer.name)
 			layer.locked = false;
 			var frames = layer.frames;
 			if (frames.length > 0) {
 				for (var k = 0; k < frames.length; k++) {
 					var frame = frames[k];
 					if (frame.startFrame == k) {
-						fl.trace("index " + (k+1) + " is key frame")
 						var elements = frame.elements;
 						var isHadShape = false;
 						for (var l = 0; l < elements.length; l++) {
 							var oneE = elements[l];
 							if (oneE.elementType === "shape") {
-								fl.trace("had shape")
 								isHadShape = true;
 								break
 							}
 						};
 						if (isHadShape) {					
-							// if (elements.length > 1) {
-								fl.trace("CATCH: symbal:" + itemName + " layer:" + layer.name + " frameIndex:" + k);
-								fl.trace("Try to trance ...")
-								timeline.setSelectedFrames(k, k, true);
-								doc.selectAll();
-								fl.trace("Try trans to movie clip")
-								var newMc = doc.convertToSymbol("graphic", "", "center");
-								if (!newMc)
-									fl.trace("error: can not trans to symbol")
-								else {
-									fl.trace("trans success:" + newMc.name)
-									library.selectItem(newMc.name);
-									library.editItem();
-									// fl.trace("1")
-									var frame = newMc.timeline.layers[0].frames[0];
-									// fl.trace("2")
-									newMc.timeline.setSelectedFrames(0, 0, true);
-									// fl.trace("3")
-									doc.selectAll();
-									// fl.trace("4")
-									fl.trace("distributeToLayers")
-									doc.distributeToLayers();
-									tranOneTimeLine2(newMc.timeline, newMc.name);
-									// return tranOneTimeLine(timeline, itemName)
-								}
-							// }
-							// else {
-							// 	// fl.trace("trans the just one to bitmap")
-							// 	// timeline.setSelectedFrames(k, k, true);
-							// 	// doc.selectAll();
-							// 	// doc.convertToSymbol("graphic", "", "center");
-							// }
-
-						}
-					}
-				};
-			}
-			layer.locked = true;
-		};
-		timeline.setLayerProperty('locked', false, 'all');
-		fl.trace("===========================>")
-	}
-
-	var tranOneTimeLine3 = function (timeline, itemName) {
-		fl.trace("tranOneTimeLine:" + itemName)
-		var layers = timeline.layers;
-		locAllLayer(timeline);
-		for (var j = 0; j < layers.length; j++) {
-			var layer = layers[j];
-			fl.trace("check layer:" + layer.name)
-			layer.locked = false;
-			var frames = layer.frames;
-			if (frames.length > 0) {
-				for (var k = 0; k < frames.length; k++) {
-					var frame = frames[k];
-					if (frame.startFrame == k) {
-						fl.trace("index " + (k+1) + " is key frame")
-						var elements = frame.elements;
-						var isHadShape = false;
-						for (var l = 0; l < elements.length; l++) {
-							var oneE = elements[l];
-							if (oneE.elementType === "shape") {
-								fl.trace("had shape")
-								isHadShape = true;
-								break
-							}
-						};
-						if (isHadShape) {					
-							if (elements.length > 1) {
-								fl.trace("CATCH: symbal:" + itemName + " layer:" + layer.name + " frameIndex:" + k);
-								fl.trace("Try to trance ...")
-								timeline.setSelectedFrames(k, k, true);
-								doc.selectAll();
-								fl.trace("Try trans to movie clip")
-								var newMc = doc.convertToSymbol("graphic", "", "center");
-								if (!newMc)
-									fl.trace("error: can not trans to symbol")
-								else {
-									fl.trace("trans success:" + newMc.name)
-									library.selectItem(newMc.name);
-									library.editItem();
-									// fl.trace("1")
-									var frame = newMc.timeline.layers[0].frames[0];
-									// fl.trace("2")
-									newMc.timeline.setSelectedFrames(0, 0, true);
-									// fl.trace("3")
-									doc.selectAll();
-									// fl.trace("4")
-									fl.trace("distributeToLayers")
-									doc.distributeToLayers();
-									tranOneTimeLine2(newMc.timeline, newMc.name);
-									// return tranOneTimeLine(timeline, itemName)
-								}
-							}
+							fl.trace("CATCH: symbal:" + itemName + " layer:" + layer.name + " frameIndex:" + k);
+							timeline.setSelectedFrames(k, k, true);
+							doc.selectAll();
+							fl.trace("Try trans to movie clip")
+							var newMc = doc.convertToSymbol("graphic", "", "center");
+							if (!newMc)
+								fl.trace("error: can not trans to symbol")
 							else {
-								fl.trace("trans the just one to bitmap")
+								fl.trace("trans success:" + newMc.name)
+								library.selectItem(newMc.name);
+								library.editItem();
+								var frame = newMc.timeline.layers[0].frames[0];
+								newMc.timeline.setSelectedFrames(0, 0, true);
+								doc.selectAll();
+								fl.trace("distributeToLayers")
+								doc.distributeToLayers();
+								tranOneTimeLine2(newMc.timeline, newMc.name);
+								if (itemName === "__scene")
+									doc.exitEditMode();
+								else {
+									library.selectItem(itemName);
+									library.editItem();
+								}
 								timeline.setSelectedFrames(k, k, true);
 								doc.selectAll();
-								doc.convertSelectionToBitmap()
+								doc.breakApart()
+								doc.library.deleteItem(newMc.name)
 							}
-
 						}
 					}
 				};
@@ -142,30 +66,36 @@ if (typeof PreTrans !== "object") {
 			layer.locked = true;
 		};
 		timeline.setLayerProperty('locked', false, 'all');
-		fl.trace("===========================>")
+		doc.exitEditMode();
+		fl.trace("===========================>" + itemName + " end")
 	}
 
 	var tranOneTimeLine2 = function (timeline, itemName) {
-		fl.trace("\ttranOneTimeLine2:" + itemName)
+		fl.trace("----deal new item:" + itemName)
 		locAllLayer(timeline);
 		var layers = timeline.layers;
+		var layersNeedDelete = []
 		for (var j = 0; j < layers.length; j++) {
 			var layer = layers[j];
-			fl.trace("\tcheck layer:" + layer.name)
+			fl.trace("--------check layer:" + layer.name)
 			layer.locked = false;
 			var frames = layer.frames;
+			var allFrameIsEmpty = true
 			if (frames.length > 0) {
 				for (var k = 0; k < frames.length; k++) {
 					var frame = frames[k];
+					if (!frame.isEmpty) {
+						allFrameIsEmpty = false
+					}
 					if (frame.startFrame === k) {
-						fl.trace("\tindex " + (k+1) + " is key frame")
+						fl.trace("------------index " + (k+1) + " is key frame")
 						var elements = frame.elements;
-						fl.trace("\telements len:" + elements.length)
+						fl.trace("------------elements len:" + elements.length)
 						if (elements.length === 1) {
 							var element = elements[0];
-							fl.trace("\t" + element.elementType)
+							fl.trace("----------------" + element.elementType)
 							if (element.elementType === "shape") {
-								fl.trace("\tCatch:" + itemName + " Try trans to bitmap")
+								fl.trace("----------------Catch:" + itemName + " Try trans to bitmap")
 								timeline.setSelectedFrames(k, k, true);
 								doc.selectAll();
 								doc.convertSelectionToBitmap()
@@ -174,9 +104,15 @@ if (typeof PreTrans !== "object") {
 					}
 				};
 			}
+			if (allFrameIsEmpty) {
+				layersNeedDelete[layersNeedDelete.length] = j
+			}
 			layer.locked = true;
 		};
 		timeline.setLayerProperty('locked', false, 'all');
+		for (var i = layersNeedDelete.length - 1; i >= 0; i--) {
+			timeline.deleteLayer(layersNeedDelete[i])
+		}
 	}
 
 	var transAllShap = function (func) {
@@ -192,24 +128,55 @@ if (typeof PreTrans !== "object") {
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			// fl.trace("item name:" + item.name);
-			if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
-				// fl.trace("item name:" + item.name + "is symbal");
-				if (!item.name.firstName().endsWith(".fla")) {
-					library.selectItem(item.name);
-					library.editItem();
-					func(item.timeline, item.name)
+			if (!allMaskItem[item.name] || allMaskItem[item.name] === undefined) {
+				if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
+					// fl.trace("item name:" + item.name + "is symbal");
+					if (!item.name.firstName().endsWith(".fla")) {
+						library.selectItem(item.name);
+						library.editItem();
+						func(item.timeline, item.name)
+					}
 				}
 			}
 		};
 	}
-	PreTrans.trans = function (argument) {
+
+	var cacheAllMaskItem = function (doc) {
+		doc.exitEditMode();
+		TimeLineLooper.elementF(function (e, f, l, t) {
+			print("elmentFunc")
+			if (l.layerType === "mask") {
+				if (e.elementType === "instance") {
+					var libItem = e.libraryItem
+					print(e.libraryItem.name)
+					allMaskItem[e.libraryItem.name] = true
+				}
+			}
+		})
+		TimeLineLooper.trave(doc.getTimeline())
+		for (var i = 0; i < items.length; i++) {
+			var item = items[i];
+			// fl.trace("item name:" + item.name);
+			if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
+				TimeLineLooper.trave(item.timeline)
+			}
+		}
+		TimeLineLooper.clear()
+	}
+
+	PreTrans.trans = function (exportDoc) {
 		fl.outputPanel.clear();
-		doc = fl.getDocumentDOM();
+		if (exportDoc !== undefined) 
+			doc = exportDoc
+		else 
+			doc = fl.getDocumentDOM();
+
 		library = doc.library;
 		items = library.items;
 
+		cacheAllMaskItem(doc)
 		transAllShap(tranOneTimeLine);
-		transAllShap(tranOneTimeLine3);
+		// transAllShap(tranOneTimeLine3);
 	}
 }())
 

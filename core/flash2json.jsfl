@@ -4,7 +4,6 @@ if (typeof Flash2Json !== "object") {
 }
 (function () {
 	fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
-
 	var ExportFname = CONFIG.ExportFname;
 	var UnexportFname = CONFIG.UnexportFname;
 	var AutoNamePrefix = "auto";
@@ -14,13 +13,11 @@ if (typeof Flash2Json !== "object") {
 	var defaultTextName = "__Text";
 	var spliteFolder = "library"
 	var exportScript = CONFIG.exportScript
-	var doc = fl.getDocumentDOM();
-	var library = doc.library;
-	var FlashName = doc.path.fileName();
-	var resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
-	var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
-	var folderPath = exportScript ? scriptFolderPath : resFolderPath
-
+	var doc, library, FlashName
+	var newDataCache = {};
+	var curTimeLine;
+	var curLayer;
+	var curFrameIndex;
 	var allImgArr = [];
 	var allMuscArr = [];
 	var allScriptData = {}
@@ -243,10 +240,7 @@ if (typeof Flash2Json !== "object") {
 		return data;
 	}
 
-	var newDataCache = {};
-	var curTimeLine;
-	var curLayer;
-	var curFrameIndex;
+
 	var getItemNewData = function (item, itemType, nameHash) {
 		var ret = newDataCache[item.name];
 		if (!ret) {	
@@ -591,8 +585,21 @@ if (typeof Flash2Json !== "object") {
 		return newName;
 	}
 
-	Flash2Json.export = function (argument) {
+	Flash2Json.export = function (exportDoc) {
 		fl.outputPanel.clear();
+		if (exportDoc !== undefined) {
+			doc = exportDoc
+		}
+		else {
+			doc = fl.getDocumentDOM();
+		}
+		print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> doc:" + doc.name)
+		library = doc.library;
+		FlashName = doc.path.fileName();
+		var resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
+		var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
+		var folderPath = exportScript ? scriptFolderPath : resFolderPath
+		
 		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/templet_lua')
 		var sheetExporter
 		if (CONFIG.exportSheet)

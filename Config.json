@@ -4,7 +4,7 @@
     "scriptFolder": "file:///D|/code/cocos/flash/test/src/app/flashScript",
     "ExportFname": "_EPT",
     "UnexportFname": "_UEPT",
-    "exportSheet":false,
+    "exportSheet":true,
     "sheetConfig": {
         "format": "RGBA8888",
         "layoutFormat": "cocos2D v3",
@@ -35,5 +35,5 @@
     "splite": true,
     "exportFileType": "lua",
     "exportScript": true,
-    "showEaSe": true,
+    "showEaSe": true
 }

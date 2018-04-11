@@ -20,9 +20,10 @@ function is (value) {
     
     return ret
 }
+print = fl.trace;
 
+fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/TimeLineLooper.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/stringE.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/lua2.jsfl')
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/json2.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/Config.jsfl');
-print = fl.trace;

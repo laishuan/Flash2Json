@@ -11,11 +11,12 @@ if (typeof INFO !== "object") {
 		fl.outputPanel.clear();
 		var doc = fl.getDocumentDOM();
 		var library = doc.library;
-
 		var selItems = library.getSelectedItems();
-
+		var outputStr = ""
+		doc.exitEditMode();
 		var ref = function  (key, value) {
 			var ret = {};
+			// print("key:" + key)
 			if (key === "libraryItem") {
 				ret.v = value.name;
 				ret.t = JsonDealTypes.Deal;
@@ -44,6 +45,7 @@ if (typeof INFO !== "object") {
 					|| key === "packagePaths"
 					|| key === "lineType"
 					|| key === "listIndex"
+					|| key === "webfontsManager"
 					/*|| value.elementType == "shape"*/) {	
 				ret.t = JsonDealTypes.Skip;
 				return ret;
@@ -77,11 +79,14 @@ if (typeof INFO !== "object") {
 			}
 		}
 		if (selItems.length == 0) {
-			print(JSON.stringify(doc.getTimeline(), ref, 4));
+			outputStr = JSON.stringify(doc.getTimeline(), ref, 4)
 		}
 		else {
-			print(JSON.stringify(selItems, ref, 4))
+			outputStr =JSON.stringify(selItems, ref, 4)
 		}
+		print(outputStr)
+		FLfile.write(fl.configURI+"SceneOrItemInfo.json", outputStr)
+		FLfile.write(fl.configURI+"FlashAllInfo.json", JSON.stringify(fl, ref, 4))
 	}
 }())
 
