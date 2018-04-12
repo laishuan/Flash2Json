@@ -1,7 +1,5 @@
 // Lua.jsfl
 
-// Lua.jsfl
-
 if (typeof LUA !== "object") {
     LUA = {};
 }
