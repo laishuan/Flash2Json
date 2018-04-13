@@ -13,7 +13,7 @@ if (typeof XML !== "object") {
 	var OTHERTYPE = 100;
 
 	var space = '    ';
-	var elementMark = "_"
+	var elementMark //= "_"
 	var keyCheckFunc
 	var maxLevel
 
@@ -32,7 +32,7 @@ if (typeof XML !== "object") {
 				}
 			}
 			var curVal = value[key]
-			if (curVal === undefined || !curVal) {
+			if (curVal === undefined || curVal === null) {
 				curVal = "null"
 				continue
 			}
@@ -53,7 +53,7 @@ if (typeof XML !== "object") {
 				ret.notElementArr[ret.notElementArr.length] = data
 			}
 			else {
-				if (key.slice(0, 1) === elementMark)
+				if (elementMark && key.slice(0, 1) === elementMark)
 					ret.elementArr[ret.elementArr.length] = data
 				else
 					ret.notElementArr[ret.notElementArr.length] = data		

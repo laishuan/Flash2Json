@@ -19,6 +19,8 @@ if (typeof LUA !== "object") {
 	var HASHTYPE = 4;
 	var BOOLTYPE = 5;
 	var OTHERTYPE = 100;
+	var keyCheckFunc
+	var maxLevel
 	// body...
 	var rx_escapable = /[\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
     var meta = {    // table of character substitutions
@@ -82,8 +84,26 @@ if (typeof LUA !== "object") {
 	}
 
 	var toLuaTable = function (input, key, intent) {
+		if (keyCheckFunc !== undefined) {
+			var ret = keyCheckFunc(key, input)
+			if (ret.t === JsonDealTypes.Skip)
+				return ""
+			else
+				input = ret.v
+		}
+
 		var output = '';
 		intent = intent ? intent : 0;
+		if (intent > maxLevel) {
+			output += getSpace(intent);
+		    if (key) {
+		    	output += key + " " + eq + " " + quote1("MAX LEVEL");
+		    }
+		    else {
+			    output += quote1("MAX LEVEL");
+		    }
+			return output
+		}
 		var typeInput = getType(input);
 		if (typeInput == HASHTYPE) {
 			output += getSpace(intent);
@@ -95,7 +115,25 @@ if (typeof LUA !== "object") {
 		    }
 		    var hadValue = false
 		    for (var key in input) {
+				if (keyCheckFunc !== undefined) {
+					var r = keyCheckFunc(key, {})
+					if (r.t === JsonDealTypes.Skip) {
+						continue 
+					}
+				}
 		    	var value = input[key];
+				if (value === undefined || value === null) {
+					value = "null"
+					continue
+				}
+				if (keyCheckFunc !== undefined) {
+					var r = keyCheckFunc(key, value)
+					if (r.t === JsonDealTypes.Skip)
+						continue 
+					else {
+						value = r.v
+					}
+				}
 		    	if (value !== undefined) {
 			    	output += toLuaTable(value, transKey(key), intent + 1);
 			    	output += ',' + enter;
@@ -167,8 +205,10 @@ if (typeof LUA !== "object") {
 		return output;
 	}
 
-	LUA.stringify = function (input, intent) {
-		var luaTableStr = toLuaTable(input, false, intent);
+	LUA.stringify = function (input, f, ml) {
+		keyCheckFunc = f ? f : undefined
+		maxLevel = ml ? ml : 99
+		var luaTableStr = toLuaTable(input, false, 0);
 		var ret = "local cfg = \n" + luaTableStr + "\nreturn cfg\n";
 		return ret;
 	}

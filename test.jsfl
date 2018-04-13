@@ -46,14 +46,10 @@ var ref = function  (key, value) {
 		ret.t = JsonDealTypes.Deal
 		return ret
 	}
-	else if (is(key) === "string") {
+	else {
 		ret.v = value;
 		ret.t = JsonDealTypes.Deal;
 		return ret
-	}
-	else {
-		ret.t = JsonDealTypes.Skip;
-		return ret;
 	}
 }
 print(XML.stringify(fl.getDocumentDOM(), ref, 5))
