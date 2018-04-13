@@ -72,7 +72,7 @@ if (typeof LUA !== "object") {
 	}
 
 	var transKey = function (key) {
-		return "["+quote1(key)+"]";
+		return key//"["+quote1(key)+"]";
 	}
 
 	var getSpace = function (intent) {

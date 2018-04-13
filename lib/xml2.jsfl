@@ -53,10 +53,14 @@ if (typeof XML !== "object") {
 				ret.notElementArr[ret.notElementArr.length] = data
 			}
 			else {
-				if (elementMark && key.slice(0, 1) === elementMark)
-					ret.elementArr[ret.elementArr.length] = data
+				if (elementMark) {
+					if (key.slice(0, 1) === elementMark)
+						ret.elementArr[ret.elementArr.length] = data
+					else
+						ret.notElementArr[ret.notElementArr.length] = data
+					}
 				else
-					ret.notElementArr[ret.notElementArr.length] = data		
+					ret.elementArr[ret.elementArr.length] = data
 			}
 		}
 		return ret
