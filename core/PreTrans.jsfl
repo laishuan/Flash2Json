@@ -128,40 +128,15 @@ if (typeof PreTrans !== "object") {
 		for (var i = 0; i < items.length; i++) {
 			var item = items[i];
 			// fl.trace("item name:" + item.name);
-			if (!allMaskItem[item.name] || allMaskItem[item.name] === undefined) {
-				if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
-					// fl.trace("item name:" + item.name + "is symbal");
-					if (!item.name.firstName().endsWith(".fla")) {
-						library.selectItem(item.name);
-						library.editItem();
-						func(item.timeline, item.name)
-					}
+			if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
+				// fl.trace("item name:" + item.name + "is symbal");
+				if (!item.name.firstName().endsWith(".fla")) {
+					library.selectItem(item.name);
+					library.editItem();
+					func(item.timeline, item.name)
 				}
 			}
 		};
-	}
-
-	var cacheAllMaskItem = function (doc) {
-		doc.exitEditMode();
-		TimeLineLooper.elementF(function (e, f, l, t) {
-			print("elmentFunc")
-			if (l.layerType === "mask") {
-				if (e.elementType === "instance") {
-					var libItem = e.libraryItem
-					print(e.libraryItem.name)
-					allMaskItem[e.libraryItem.name] = true
-				}
-			}
-		})
-		TimeLineLooper.trave(doc.getTimeline())
-		for (var i = 0; i < items.length; i++) {
-			var item = items[i];
-			// fl.trace("item name:" + item.name);
-			if (item.itemType == "movie clip" || item.itemType == 'graphic' || item.itemType == 'button') {
-				TimeLineLooper.trave(item.timeline)
-			}
-		}
-		TimeLineLooper.clear()
 	}
 
 	PreTrans.trans = function (exportDoc) {
@@ -173,8 +148,6 @@ if (typeof PreTrans !== "object") {
 
 		library = doc.library;
 		items = library.items;
-
-		cacheAllMaskItem(doc)
 		transAllShap(tranOneTimeLine);
 		// transAllShap(tranOneTimeLine3);
 	}

@@ -21,6 +21,7 @@ if (typeof Flash2Json !== "object") {
 	var allImgArr = [];
 	var allMuscArr = [];
 	var allScriptData = {}
+	var allLinkFileUsed = {}
 
 	var addToScriptData = function  (key, viewTp, script) {
 		var data = {}
@@ -363,6 +364,10 @@ if (typeof Flash2Json !== "object") {
 						childAttr.subTp = AnmSubTp.Mov;
 					}
 				}
+				if (tp === UITypes.LK) {
+					allLinkFileUsed[itemName] = true
+				}
+
 			}
 			else if (tp === UITypes.Img) {
 			}
@@ -503,7 +508,10 @@ if (typeof Flash2Json !== "object") {
 				ret.elements[ret.elements.length] = transElement(oneElement, nameHash, ownerName);
 			};
 			if (frame.soundLibraryItem) {
+				var itemType = checkItemType(frame.soundLibraryItem)
 				ret.soundName = nameHash.getItemNewName(frame.soundLibraryItem);
+				if (itemType === UITypes.LK)
+					allLinkFileUsed[ret.soundName] = true
 				ret.soundLoopMode = frame.soundLoopMode;
 				ret.soundSync = frame.soundSync;
 				ret.soundLoop = frame.soundLoop;
@@ -600,7 +608,7 @@ if (typeof Flash2Json !== "object") {
 		var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
 		var folderPath = exportScript ? scriptFolderPath : resFolderPath
 		
-		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/templet_lua')
+		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/template/template_lua')
 		var sheetExporter
 		if (CONFIG.exportSheet)
 		{
@@ -652,6 +660,10 @@ if (typeof Flash2Json !== "object") {
 							else
 								exportLibs[newData.name] = path
 							spliteFiles[path] = newData;
+						}
+						else if (newData.tp === UITypes.LK) {
+							if (allLinkFileUsed[newData.name])
+								exportLibs[newData.name] = newData;
 						}
 						else
 							exportLibs[newData.name] = newData;

@@ -79,14 +79,14 @@ if (typeof INFO !== "object") {
 			}
 		}
 		if (selItems.length == 0) {
-			outputStr = JSON.stringify(doc.getTimeline(), ref, 4)
+			outputStr = JSON.stringify(doc.timelines, ref, 4)
 		}
 		else {
 			outputStr =JSON.stringify(selItems, ref, 4)
 		}
 		print(outputStr)
 		FLfile.write(fl.configURI+"SceneOrItemInfo.json", outputStr)
-		FLfile.write(fl.configURI+"FlashAllInfo.json", JSON.stringify(fl, ref, 4))
+		// FLfile.write(fl.configURI+"FlashAllInfo.json", JSON.stringify(fl, ref, 4))
 	}
 }())
 

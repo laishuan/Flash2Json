@@ -8,20 +8,43 @@
 	else
 	{
 		CONFIG = {
-		    "flaFolder": "file:///D|/Flash2Json/Res/",
-		    "globalFlaFolder": "file:///D|/Flash2Json/Res/GlabolFla",
-		    "ExportFname": "export",
-		    "UnexportFname": "unexport",
-		    "sheetMaxH": 2048,
-		    "sheetMaxW": 2048,
-		    "sheetBorder":2,
+		    "flaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
+		    "globalFlaFolder": "file:///D|/code/cocos/flash/test/res/flashRes",
+		    "scriptFolder": "file:///D|/code/cocos/flash/test/src/app/flashScript",
+		    "ExportFname": "_EPT",
+		    "UnexportFname": "_UEPT",
+		    "exportSheet":true,
+		    "sheetConfig": {
+		        "format": "RGBA8888",
+		        "layoutFormat": "cocos2D v3",
+		        "maxSheetHeight": 2048,
+		        "maxSheetWidth": 2048,
+		        "algorithm": "maxRects",
+		        "autoSize": true,
+		        "allowTrimming": false,
+		        "allowRotate": false,
+		        "stackDuplicateFrames": true,
+		        "borderPadding": 0,
+		        "shapePadding": 1
+		    },
 		    "UITypes": {
-				"Img": "Image",
-				"Anm": "Anim",
-				"Nod": "Node",
-				"Txt": "Text",
-				"LK" : "Link"
-		    }
+		        "Img": "Image",
+		        "Anm": "Anim",
+		        "Txt": "Text",
+		        "LK": "Link",
+		        "Nod": "Node",
+		        "Musc": "Music"
+		    },
+		    "AnmSubTp" : {
+		        "Gra": "Graphic",
+		        "Spt": "FSprite",
+		        "Mov": "Movieclip",
+		        "Btn": "Button"
+		    },
+		    "splite": true,
+		    "exportFileType": "lua",
+		    "exportScript": true,
+		    "showEaSe": true
 		};
 		FLfile.write(configPath, JSON.stringify(CONFIG, null, 4));
 	}

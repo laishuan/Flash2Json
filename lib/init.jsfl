@@ -22,9 +22,9 @@ function is (value) {
 }
 print = fl.trace;
 
-fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/TimeLineLooper.jsfl');
+fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/looper.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/stringE.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/lua2.jsfl')
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/json2.jsfl');
 fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/xml2.jsfl');
-fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/Config.jsfl');
+fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/config.jsfl');
