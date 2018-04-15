@@ -63,4 +63,12 @@
 	   }
 	   return str;
 	}
+
+	String.prototype.isChinese = function () {
+	　　var reg = new RegExp("[\\u4E00-\\u9FFF]+","g");
+	　　if(reg.test(this)){
+			return true
+		}
+		return false
+	}
 }())

@@ -26,5 +26,26 @@ var doc = fl.getDocumentDOM();
 // print("copy :" + isOK)
 // doc = fl.openDocument(newFileURI)
 // //export
-doc.addDataToDocument("size", "string", "aaa")
+print(typeof(undefined))
 // fl.openDocument(pathURI)
+
+var pathURI = doc.pathURI
+print(pathURI)
+var sysPath = FLfile.uriToPlatformPath(pathURI.path())
+print(sysPath)
+print(FLfile.platformPathToURI(sysPath))
+print("场景 1".indexOf("场景"))
+print("asdfasdf123123/.啊//./".isChinese())
+
+	var transFuncHash = {
+		// [CONFIG.UITypes.Img]: 1,
+		// [CONFIG.UITypes.ImgTree]: transUIImgTree,
+		// [CONFIG.UITypes.Anm]: transUIAnm,
+		// [CONFIG.UITypes.Txt]: transUITxt,
+		// [CONFIG.UITypes.LK]: transUILK,
+		// [CONFIG.UITypes.Nod]: transUINod,
+		// [CONFIG.UITypes.Musc]: transUIMusc,
+		// [CONFIG.UITypes.UnKnow]: transUIUnKnow
+	}
+
+	transFuncHash[CONFIG.UITypes.Img] = 1
