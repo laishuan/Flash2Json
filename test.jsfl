@@ -16,15 +16,15 @@ fl.runScript(fl.configURI + 'Commands/Flash2Json/lib/init.jsfl');
 // fl.openDocument(pathURI)
 
 var doc = fl.getDocumentDOM();
-var pathURI = doc.pathURI
-fl.saveDocument(doc)
-var filePath = pathURI.path()
-var fileName = doc.name.fileName()
-FLfile.remove(newFileURI)
-var newFileURI = filePath + ".EXPORT." + fileName + ".fla"
-var isOK = FLfile.copy(pathURI, newFileURI)
-print("copy :" + isOK)
-doc = fl.openDocument(newFileURI)
-//export
-fl.closeDocument(doc)
+// var pathURI = doc.pathURI
+// fl.saveDocument(doc)
+// var filePath = pathURI.path()
+// var fileName = doc.name.fileName()
+// FLfile.remove(newFileURI)
+// var newFileURI = filePath + ".EXPORT." + fileName + ".fla"
+// var isOK = FLfile.copy(pathURI, newFileURI)
+// print("copy :" + isOK)
+// doc = fl.openDocument(newFileURI)
+// //export
+doc.addDataToDocument("size", "string", "aaa")
 // fl.openDocument(pathURI)
