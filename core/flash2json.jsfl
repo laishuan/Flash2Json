@@ -22,6 +22,8 @@ if (typeof Flash2Json !== "object") {
 	var allMuscArr = [];
 	var allScriptData = {}
 	var allLinkFileUsed = {}
+	var resFolderPath 
+	var scriptFolderPath
 
 	var addToScriptData = function  (key, viewTp, script) {
 		var data = {}
@@ -571,8 +573,9 @@ if (typeof Flash2Json !== "object") {
 	OriginNameHash.prototype.getItemNewName = function (item) {
 		var name = item.name;
 		var newName = this.origin2New[name];
-		if (newName !== undefined) 
+		if (newName !== undefined) {
 			return newName;
+		}
 		else {
 			var itemType = checkItemType(item);
 			if (name.firstName() === ExportFname) {
@@ -604,8 +607,8 @@ if (typeof Flash2Json !== "object") {
 		print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> doc:" + doc.name)
 		library = doc.library;
 		FlashName = doc.path.fileName();
-		var resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
-		var scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
+		resFolderPath =  CONFIG.flaFolder + '/' + FlashName;
+		scriptFolderPath = CONFIG.scriptFolder + '/' + FlashName
 		var folderPath = exportScript ? scriptFolderPath : resFolderPath
 		
 		var templetContent = FLfile.read(fl.configURI + 'Commands/Flash2Json/template/template_lua')
